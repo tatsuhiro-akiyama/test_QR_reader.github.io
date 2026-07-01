@@ -318,12 +318,84 @@
                         placeholder.style.display = 'none';
                     }, 700);
                 };
+
+                // QRコードの検出
+                checkImage();
             } catch (err) {
                 console.error("Camera access error:", err);
                 cameraStatusText.innerText = "SIMULATED CAMERA ACTIVE";
                 cameraStatusText.classList.add('text-emerald-500');
             }
         }
+
+        /** QRコードの検出
+        async function checkImage() {
+            try {
+                // settimeoutで常に再起呼び出しされるため、カメラ停止中は処理をせずに抜ける
+                if (!g_numCaramaAniFrameId) { return; }
+                
+                // 初期化（描画済みの赤い枠、設定済みの社員情報などを消す）
+                crearRect();
+
+                // imageDataを作ってjsQRに渡す
+                const imageData = ctx.getImageData(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+                const code = jsQR(imageData.data, VIDEO_WIDTH, VIDEO_HEIGHT);
+
+                // QRコードが未検出の場合、赤い枠を消して処理を抜ける
+                if (!code) { return; }
+            
+                // QRコードが検出できた場合、赤い枠を描画
+                crearInputValues();
+                drawRect(code.location);
+
+                // 正しいQRコードかどうかのフラグ（初期値：true）
+                let _isCorrect = true;
+
+                // QRコード内容の入力チェック
+                let _qr_data = code.data.split(',').map((_val) => _val.trim());
+                if (_qr_data.length != 2) { _isCorrect = false; }
+                else if (typeof _qr_data[0] != 'string') { _isCorrect = false; }
+                else if (typeof _qr_data[1] != 'string') { _isCorrect = false; }
+
+                // _qr_data[0]の値がスプレッドシート取得データの日付と一致するかチェック
+                if (_qr_data[0] != SETTING_DATA.date.trim()) { _isCorrect = false; }
+
+                // _qr_data[1]の値で社員番号を検索し、該当者がいるかチェック
+                let _ret = $.grep(EMPLOYEE_INFO, function (obj, index) {
+                return (obj.user_no == String(_qr_data[1]));
+                });
+                if (_ret.length == 0) { _isCorrect = false; }
+
+                // 不正なQRコードだった場合、「不正なQR」の文字を表示し処理を抜ける
+                if (!_isCorrect) {
+                console.warn('QRコード検出：不正なQRコード', _qr_data);
+                drawText('不正なQRコードです');
+                return;
+                }
+
+                console.group('QRコード検出：正しいQRコード');
+                console.table(_qr_data);
+
+                // カメラ映像の一旦停止
+                cameraStop();
+
+                // QRコード内容を画面に描画
+                qrdata_chooseSelectbox(_ret[0]);
+                console.groupEnd();
+
+            }  catch (e) {
+                // エラーが発生した場合、何も処理しない
+                console.error(e);
+            } finally {
+                // 処理途中でreturnで抜ける場合でも、finally内のsettimeoutは必ず実行される
+                setTimeout(()=>{ checkImage() }, 500);
+            }
+        }
+        */
+
+
+
+
 
         // 初期状態でカメラを即座に接続開始
         window.addEventListener('load', () => {
