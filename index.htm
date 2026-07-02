@@ -49,7 +49,7 @@
 <body class="bg-slate-950 text-white font-sans overflow-hidden select-none h-screen w-full flex justify-center items-center">
 
     <!-- モバイル風コンテナ（PC閲覧時でもスマホの縦長を体験できるように幅を制限、スマホ実機では全画面） -->
-    <div class="relative w-full max-w-md h-full bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800">
+    <div id="containor" class="relative w-full max-w-md h-full bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800 translate-y-0 opacity-0">
 
         <!-- カメラレイヤー & ビジュアル背景 -->
         <div class="absolute inset-0 z-0 bg-slate-950">
@@ -243,8 +243,58 @@
         </div>
     </div>
 
+    <!-- 設定データ取得待ちのポップアップ通知（トーストUI） -->
+    <div id="toast-getData-wait" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
+        <!-- スピナー＆メッセージ -->
+        <div class="flex flex-center flex-center items-center justify-center">
+            <!-- スピナー -->
+            <svg class="mr-3 -ml-1 size-5 animate-spin text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <!-- メッセージ -->
+            <div class="text-sm text-emerald-400 mt-0.5 mb-1.5">
+                設定データ取得中<br>しばらくお待ちください...
+            </div>
+        </div>
+    </div>
+
+    <!-- 起動時インフォメーションのポップアップ通知（トーストUI） -->
+    <div id="toast-appli-info" class="absolute top-[130px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
+
+        <!-- アプリ名＆バージョン -->
+        <div id="toast-message" class="text-lg text-center font-bold text-white mt-0.5 mb-1.5">
+            会議受付アプリ[QR]
+            <!-- バージョン -->
+            <div class="text-sm text-emerald-400 mt-0.5">
+                ～ <span id="appli-version">verYYYYMM.東京</span> ～
+            </div>
+        </div>
+
+        <!-- アプリアイコン -->
+        <img class="w-[64px] h-[64px] flex items-center justify-center " src="data:image/png;base64,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">
+
+        <!-- 動作モード（動作確認モード時のみ表示） -->
+        <div id="appli-mode" class="hidden text-sm text-white">
+            現在、<b class="text-lg text-red-400">デバッグ実行中</b> です。
+        </div>
+
+        <!-- インフォメーション -->
+        <div id="appli-info" class="text-sm text-white h-16 overflow-y-auto"></div>
+
+        <!-- 注意書き -->
+        <div class="text-sm text-white">
+            エラーが頻発する場合は、紙運用に切り替えて下さい。
+        </div>
+
+        <!-- 閉じるボタン -->
+        <button type="button" id="btn-appInfo-close" class="inline-flex cursor-not-allowed items-center rounded-md bg-indigo-500 px-4 py-2 text-sm leading-6 font-semibold text-white transition duration-150 ease-in-out hover:bg-indigo-400">
+            閉じる
+        </button>
+    </div>
+
     <!-- 失敗時のポップアップ通知（トーストUI） -->
-    <div id="toast" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md animate-bounce">
+    <div id="toast-error" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md animate-bounce">
 
             <!-- 失敗時のアイコン -->
             <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
@@ -271,6 +321,7 @@
         var g_numCaramaAniFrameId = null;
 
         // DOM要素の取得
+        const containor = document.getElementById('containor');
         const video = document.getElementById('camera-stream');
         const canvas = document.getElementById('camera-canvas');
         
@@ -293,6 +344,11 @@
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
         const toastDetail = document.getElementById('toast-detail');
+
+        // トーストUI
+        const toastDataWait = document.getElementById('toast-getData-wait');
+        const toastAppInfo = document.getElementById('toast-appli-info');
+        
 
         // 音声フィードバック用のWeb Audio API
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -496,27 +552,38 @@
                 setTimeout(()=>{ checkImage() }, 500);
             }
         }
-        
 
+        /** 画面ロード時の処理 */
+        window.onload = async function() {
+            // 設定データ取得待ちの表示
+            clearTimeout(toastTimeout);
+            toastDataWait.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toastDataWait.classList.add('translate-y-0', 'opacity-100');
 
-
-
-
-        // 初期状態でカメラを即座に接続開始
-        window.addEventListener('load', () => {
-            // 設定データの取得
+            // 設定データ＆社員情報一覧の取得
             const GAS_URL = 'https://script.google.com/macros/s/AKfycbzykP8C3V2GfIn8V28C-FaGUND510AQ7Q-mqNgmS1o3er1-pJWNmGU2OEMeKbgKArEa/exec';
-
             const sendParam = {
                 action: 'getSettingData'
             };
-            let data = getFetchData(GAS_URL, sendParam);
+            let data = await getFetchData(GAS_URL, sendParam);
+
+            // 上記処理完了後に、設定データ取得待ちを隠す
+            toastDataWait.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toastDataWait.classList.remove('translate-y-0', 'opacity-100');
+
+            // カメラ映像部などのメイン部分を表示
+            containor.classList.remove('translate-y-0', 'opacity-0');
+            
+            // 起動時インフォメーションの表示
+            showAppliInfo(
+                data.settingData.version
+                ,data.settingData.app_mode
+                ,data.settingData.info_message
+            );
 
             // カメラの起動
-            if (!data) {
-                startCamera();
-            }
-        });
+            startCamera();
+        }
 
         // 2. モード切替ロジック
         function switchToQr() {
@@ -576,6 +643,41 @@
 
         // 3. インタラクション・通知デモ
         let toastTimeout;
+        function showAppliInfo(_version, _app_mode, _ary_message) {
+            clearTimeout(toastTimeout);
+
+
+
+
+            // バージョン情報
+            const appliVersion = document.getElementById('appli-version');
+            appliVersion.innerText = _version;
+
+            // 動作モード（動作確認モードの場合のみ表示）
+            const appliMode = document.getElementById('appli-mode');
+            if (_app_mode === "動作確認モード") {
+                appliMode.classList.remove('hidden');
+            }
+
+            // インフォメーション
+            //const appliMode = document.getElementById('appli-mode');
+
+
+
+
+
+            // トースト表示アニメーション
+            toastAppInfo.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toastAppInfo.classList.add('translate-y-0', 'opacity-100');
+
+            console.log('showAppliInfo');
+
+            // 何もしなくても60秒後に隠す
+            toastTimeout = setTimeout(() => {
+                toastAppInfo.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                toastAppInfo.classList.remove('translate-y-0', 'opacity-100');
+            }, 60000);
+        }
         function showNotification(message, detail, isSuccess = true) {
             clearTimeout(toastTimeout);
             
