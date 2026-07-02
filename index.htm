@@ -346,11 +346,11 @@
                 if (data.status !== "success") {
                     // GAS処理成功
                     console.log('GAS側処理正常終了：');
-                    console.table(data.data);
+                    console.table(data);
                     return data.data;
                 } else {
                     // GAS処理失敗
-                    console.error('GAS側でエラー発生：', data.data);
+                    console.error('GAS側でエラー発生：', data);
                 }
             } catch (error) {
                 // GAS処理呼び出しに失敗
