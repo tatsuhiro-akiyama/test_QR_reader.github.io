@@ -48,7 +48,7 @@
 </head>
 <body class="bg-slate-950 text-white font-sans overflow-hidden select-none h-screen w-full flex justify-center items-center">
     <!-- モバイル風コンテナ（PC閲覧時でもスマホの縦長を体験できるように幅を制限、スマホ実機では全画面） -->
-    <div id="containor" class="relative w-full max-w-md h-full bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800 translate-y-0 opacity-0">
+    <div id="containor" class="relative w-full max-w-md h-full bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800 translate-y-0 hidden">
         <!-- カメラレイヤー & ビジュアル背景 -->
         <div class="absolute inset-0 z-0 bg-slate-950">
             <canvas id="camera-canvas"></canvas>
@@ -232,12 +232,11 @@
         </footer>
     </div>
 
-    <!-- 設定データ取得待ちのポップアップ通知（トーストUI） -->
-    <div id="toast-getData-wait" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
-        <!-- スピナー＆メッセージ -->
+    <!-- 設定データ取得待ちのポップアップ通知 -->
+    <div id="toast-getData-wait" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
         <div class="flex flex-center flex-center items-center justify-center">
             <!-- スピナー -->
-            <svg class="mr-3 -ml-1 size-5 animate-spin text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="mr-3 -ml-1 size-8 text-emerald-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -248,9 +247,8 @@
         </div>
     </div>
 
-    <!-- 起動時インフォメーションのポップアップ通知（トーストUI） -->
-    <div id="toast-appli-info" class="absolute top-[130px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
-
+    <!-- 起動時インフォメーションのポップアップ通知 -->
+    <div id="toast-appli-info" class="absolute top-[130px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
         <!-- アプリ名＆バージョン -->
         <div id="toast-message" class="text-lg text-center font-bold text-white mt-0.5">
             会議受付アプリ[QR]
@@ -282,10 +280,9 @@
         </button>
     </div>
 
-    <!-- 成功時のポップアップ通知（トーストUI） -->
-    <div id="toast" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
-
-        <!-- 成功時のアイコン -->
+    <!-- 成功時のポップアップ通知 -->
+    <div id="toast" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+        <!-- アイコン -->
         <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
@@ -306,30 +303,70 @@
         </div>
     </div>
 
-    <!-- 失敗時のポップアップ通知（トーストUI） -->
-    <div id="toast-error" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md animate-bounce">
+    <!-- エラー時のポップアップ通知 -->
+    <div id="toast-error" class="absolute top-[230px] left-6 right-6 z-50 bg-red-950 border border-red-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+        <!-- アイコン -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 text-red-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
 
-            <!-- 失敗時のアイコン -->
-            <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
-                </svg>
+        <!-- メッセージ -->
+        <div class="flex-1">
+            <div class="text-sm text-red-500 font-bold mt-0.5 mb-1">
+                エラーが発生しました
             </div>
-
-            <!-- メッセージ -->
-            <div class="flex-1">
-                <div id="toast-message" class="text-sm text-emerald-400 mt-0.5">
-                    受付を完了しました
-                </div>
-                <div id="toast-detail" class="text-lg font-bold text-slate-100">
-                    所属 \n 氏名 
-                </div>
+            <div id="toast-error-message" class="text-slate-100">
+                エラーメッセージ<br>エラー詳細
             </div>
         </div>
     </div>
 
     <!-- JavaScript制御 -->
     <script>
+        /** GETパラメータの値 */
+        var args = null;
+
+        /** GASから取得した設定情報
+         * @property {string}  title                     - 会議名称
+         * @property {string}  version                   - アプリバージョン
+         * @property {string}  app_mode                  - アプリ動作モード
+         * @property {string}  mode
+         * @property {object}  info_message              - アプリ更新履歴
+         * @property {string}  pass                      - アプリ起動用パスワード
+         * @property {string}  date                      - 会議日程（yyyy/mm/dd）
+         * @property {string}  date_jp                   - 会議日程（yyyy年mm月dd日）
+         * @property {string}  venue_meeting             - 会議の会場名称
+         * @property {string}  seating_chart_meeting     - 会議会場の座席画像URL
+         * @property {string}  venue_gathering           - 懇親会の会場名称
+         * @property {string}  seating_chart_gathering   - 懇親会会場の座席画像URL
+         * @property {string}  mail_from                 - メール宛先
+         * @property {object}  no_send_mail_dept         - 非メール送信対象の所属
+         */
+        var SETTING_DATA = {};
+
+        /** GASから取得した社員情報一覧
+         * @property {string}  row_no     - スプレッドシート登録行番号
+         * @property {string}  company    - 会社名
+         * @property {string}  user_no    - 社員番号
+         * @property {string}  name       - 氏名漢字
+         * @property {string}  kana       - 氏名カナ
+         * @property {string}  dept       - 所属
+         * @property {string}  mail       - メールアドレス
+         * @property {string}  meeting    - 事前出欠有無（会議）
+         * @property {string}  social_gathering   - 事前出欠有無（懇親会）
+         * @property {string}  seat_meeting       - 座席番号（会議）
+         * @property {string}  seat_gathering     - 座席番号（懇親会）
+         */
+        var EMPLOYEE_DATA = {};
+
+        /** GASのURL */
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzykP8C3V2GfIn8V28C-FaGUND510AQ7Q-mqNgmS1o3er1-pJWNmGU2OEMeKbgKArEa/exec";
+
+        /** GASのURL送信時に送るパラメータ */
+        const sendParam = {
+            action: 'getSettingData'
+        };
+
         var ctx;
         var g_numCaramaAniFrameId = null;
 
@@ -337,19 +374,19 @@
         const containor = document.getElementById('containor');
         const video = document.getElementById('camera-stream');
         const canvas = document.getElementById('camera-canvas');
-        
+
         const placeholder = document.getElementById('camera-placeholder');
         const cameraStatusText = document.getElementById('camera-status-text');
 
         const modeQr = document.getElementById('mode-qr');
         const modeManual = document.getElementById('mode-manual');
-        
+
         const btnModeQr = document.getElementById('btn-mode-qr');
         const btnModeManual = document.getElementById('btn-mode-manual');
-        
+
         const iconQr = document.getElementById('icon-container-qr');
         const iconManual = document.getElementById('icon-container-manual');
-        
+
         const scanTarget = document.getElementById('scan-target');
         const manualInput = document.getElementById('manual-input');
         const submitBtn = document.getElementById('submit-btn');
@@ -358,16 +395,18 @@
         const toastMessage = document.getElementById('toast-message');
         const toastDetail = document.getElementById('toast-detail');
 
-        // トーストUI
+        /** 設定データ取得待ちのポップアップ通知 */
         const toastDataWait = document.getElementById('toast-getData-wait');
+        /** 起動時インフォメーションのポップアップ通知 */
         const toastAppInfo = document.getElementById('toast-appli-info');
         const btnAppInfoClose = document.getElementById('btn-appInfo-close');
+        /** エラー時のポップアップ通知 */
+        const toastError = document.getElementById('toast-error');
         
-        
+
 
         // 音声フィードバック用のWeb Audio API
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
         function playBeep(success = true) {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -404,7 +443,7 @@
         }
 
 
-
+        /** URLFetchを実行しデータを取得する */
         async function getFetchData(_url, _param) {
             try {
                 console.log('getFetchData:', _url);
@@ -412,25 +451,25 @@
                                             ,{method: "POST", headers: {"Content-Type": "text/plain"}, body: JSON.stringify(_param)}
                                         );
                 const data = await response.json();
-                console.log(data);
-
+                
                 if (data.status === "success") {
                     // GAS処理成功
-                    console.log('GAS側処理正常終了：');
-                    console.table(data.settingData);
-                    console.table(data.employeeData);
+                    console.log('URLFetch正常終了');
                     return data;
                 } else {
                     // GAS処理失敗
-                    console.error('GAS側でエラー発生：', data);
+                    console.error('URLFetch呼び出し先でエラー発生：', data);
+                    throw new Error(data);
                 }
             } catch (error) {
                 // GAS処理呼び出しに失敗
-                console.error('GAS呼び出しに失敗：', error);
+                console.error('URLFetch呼び出しに失敗：', error);
+                throw new Error(error.message);
             }
         }
 
-        // 1. カメラストリーム起動
+
+        /** カメラストリーム起動 */
         async function startCamera() {
             try {
                 cameraStatusText.innerText = "Accessing Camera...";
@@ -467,24 +506,30 @@
                 cameraStatusText.classList.add('text-emerald-500');
             }
         }
-
         /** カメラ映像をcanvasに描画 */
-        async function canvasUpdate() {
+        function canvasUpdate() {
             // canvasに描画
             ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
             // 再起呼び出し
             g_numCaramaAniFrameId = requestAnimationFrame(canvasUpdate);
         }
-
-        /** カメラ映像を一旦停止する
-        async function cameraStop() {
-            console.log('cameraStop!');
-
-            // videoタグの更新停止
+        /** カメラ映像を一旦停止 */
+        function cameraStop() {
+            // 再起呼び出しの停止
             cancelAnimationFrame(g_numCaramaAniFrameId);
             g_numCaramaAniFrameId = null;
+            // カメラ停止
+            video.pause();
+            console.log('カメラ停止');
         }
-        */
+        /** カメラ映像を再開 */
+        function cameraReStart() {
+            // 再起呼び出し
+            g_numCaramaAniFrameId = requestAnimationFrame(canvasUpdate);
+            // カメラ再開
+            video.play();
+            console.log('カメラ再開');
+        }
 
         /** QRコードの検出 */
         async function checkImage() {
@@ -495,6 +540,7 @@
                 // imageDataを作ってjsQRに渡す
                 const imageData = ctx.getImageData(0, 0, video.videoWidth, video.videoHeight);
                 const code = jsQR(imageData.data, video.videoWidth, video.videoHeight);
+                //console.debug(code);
 
                 // QRコードが未検出の場合、処理を抜ける
                 if (!code) { return; }
@@ -506,7 +552,7 @@
 
 
                 // QRコードが検出できた場合、カメラ映像を一旦停止する
-                video.pause();
+                cameraStop();
 
                 // 正しいQRコードかどうかのフラグ（初期値：true）
                 let _isCorrect = true;
@@ -571,56 +617,149 @@
         /** 画面ロード時の処理 */
         window.onload = async function() {
             // GETパラメータの取得
+            args = getArguments();
+            // GETパラメータの判定①
+            if (!checkArguments(args)) {
+                showToastError(
+                    'このアドレスは無効、またはアクセス権限がありません。'
+                    ,false
+                );
+                return false;
+            }
+
+            // 設定データ取得待ちの表示
+            clearTimeout(toastTimeout);
+            toastDataWait.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
+            toastDataWait.classList.add('translate-y-0', 'opacity-100');
+
+            try {
+                // 設定データ＆社員情報一覧の取得
+                console.groupCollapsed('設定データ＆社員情報一覧の取得');
+                let data = await getFetchData(GAS_URL, sendParam);
+
+                // 取得結果
+                SETTING_DATA = data.settingData;
+                console.table(SETTING_DATA);
+                EMPLOYEE_DATA = data.employeeData;
+                console.table(EMPLOYEE_DATA);
+                console.groupEnd('設定データ＆社員情報一覧の取得');
+
+            } catch (fetchError) {
+                showToastError(
+                    '設定データの取得に失敗しました。<br>' + fetchError
+                    ,false
+                );
+                return false;
+            }
+
+            // データ取得完了後に、設定データ取得待ちを隠す
+            toastDataWait.classList.remove('translate-y-0', 'opacity-100');
+            toastDataWait.classList.add('hidden');
+
+            // GETパラメータの判定②
+            if (!checkParameter(args)) {
+                showToastError(
+                    'このアドレスは無効、またはアクセス権限がありません。'
+                    ,false
+                );
+                return false;
+            }
+
+            // カメラ映像部などのメイン部分を表示
+            containor.classList.remove('hidden');
+            containor.classList.add('opacity-100');
+
+            // 起動時インフォメーションの表示
+            showAppliInfo(
+                SETTING_DATA.version
+                ,SETTING_DATA.app_mode
+                ,SETTING_DATA.info_message
+            );
+
+            // カメラの起動
+            console.log('カメラ起動');
+            startCamera();
+            
+            console.log('アプリ起動完了');
+        }
+
+        /** GETパラメータの取得 */
+        function getArguments() {
+            // GETパラメータの取得
+            console.groupCollapsed('GETパラメータの取得');
             const params = new URLSearchParams(window.location.search);
-            console.log('GETパラメータ');
+
+            // 取得結果
             console.table({
                 pass: params.get('pass')
                 ,mode: params.get('mode')
                 ,date: params.get('date')
             });
+            console.groupEnd('GETパラメータの取得');
 
-
-
-
-
-
-
-
-
-            // 設定データ取得待ちの表示
-            clearTimeout(toastTimeout);
-            toastDataWait.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-            toastDataWait.classList.add('translate-y-0', 'opacity-100');
-
-            // 設定データ＆社員情報一覧の取得
-            const GAS_URL = 'https://script.google.com/macros/s/AKfycbzykP8C3V2GfIn8V28C-FaGUND510AQ7Q-mqNgmS1o3er1-pJWNmGU2OEMeKbgKArEa/exec';
-            const sendParam = {
-                action: 'getSettingData'
+            return {
+                pass: params.get('pass')
+                ,mode: params.get('mode')
+                ,date: params.get('date')
             };
-            let data = await getFetchData(GAS_URL, sendParam);
+        }
+        /** GETパラメータの判定① */
+        function checkArguments(_params) {
+            // modeの値がnullまたは空白
+            if (_params.mode === null || _params.mode === '') {
+                console.error('GETパラメータ不正：modeの値がnullまたは空白');
+                return false;
+            }
 
-            // 上記処理完了後に、設定データ取得待ちを隠す
-            toastDataWait.classList.remove('translate-y-0', 'opacity-100');
-            toastDataWait.classList.add('hidden');
+            // modeの値が規定値以外
+            switch (_params.mode) {
+                case 'recep':
+                case 'gathering':
+                case 'report':
+                    break;
+                default:
+                    console.error('GETパラメータ不正：modeの値が規定値以外');
+                    return false;
+                    break;
+            }
 
-            // カメラ映像部などのメイン部分を表示
-            containor.classList.remove('translate-y-0', 'opacity-0');
-            
-            // 起動時インフォメーションの表示
-            showAppliInfo(
-                data.settingData.version
-                ,data.settingData.app_mode
-                ,data.settingData.info_message
-            );
+            // modeの値が「recep」「gathering」でpassの値がnull
+            if ((_params.mode === 'recep' || _params.mode === 'gathering') && _params.pass === null) {
+                console.error('GETパラメータ不正：modeの値が「recep」「gathering」でpassの値がnull');
+                return false;
+            }
 
-            // カメラの起動
-            startCamera();
+            // modeの値が「report」でdateの値がnull
+            if (_params.mode === 'report' && _params.date === null) {
+                console.error('GETパラメータ不正：modeの値が「report」でdateの値がnull');
+                return false;
+            }
+
+            // 戻り値
+            return true;
+        }
+        /** GETパラメータの判定② */
+        function checkParameter(_params) {
+            // passの値がnull以外、かつ設定情報のpassの値と相違
+            if (_params.pass !== null && _params.pass !== SETTING_DATA.pass) {
+                console.error('GETパラメータ不正：passの値が相違');
+                return false;
+            }
+
+            // dateの値がnull以外、かつ設定情報のpassの値と相違
+            if (_params.date !== null && _params.date !== SETTING_DATA.date.replace('/', '')) {
+                console.error('GETパラメータ不正：dateの値が相違');
+                return false;
+            }
+
+            // 戻り値
+            return true;
         }
 
         // 2. モード切替ロジック
         function switchToQr() {
             // カメラ映像を再開する
-            video.play();
+            cameraReStart();
             
             // UIの切り替え
             modeQr.classList.remove('hidden');
@@ -646,7 +785,7 @@
         function switchToManual() {
             
             // カメラ映像を一旦停止する
-            video.pause();
+            cameraStop();
 
             // UIの切り替え
             modeManual.classList.remove('hidden');
@@ -699,10 +838,8 @@
 
 
             // トースト表示アニメーション
-            toastAppInfo.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toastAppInfo.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
             toastAppInfo.classList.add('translate-y-0', 'opacity-100');
-
-            console.log('showAppliInfo');
 
             // 何もしなくても60秒後に隠す
             toastTimeout = setTimeout(() => {
@@ -736,7 +873,7 @@
             }
 
             // トースト表示アニメーション
-            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toast.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
 
             // 成功音を鳴らす
@@ -744,11 +881,32 @@
 
             // 3秒後に隠す
             toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
                 toast.classList.remove('translate-y-0', 'opacity-100');
             }, 3000);
         }
 
+        /** エラー時のポップアップ通知 */
+        function showToastError(_message, _autoClose = true) {
+            clearTimeout(toastTimeout);
+
+            // エラーメッセージ
+            const toastErrorMessage = document.getElementById('toast-error-message');
+            toastErrorMessage.innerHTML = _message;
+
+            // トースト表示アニメーション
+            toastError.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
+            toastError.classList.add('translate-y-0', 'opacity-100');
+
+            // _autoCloseがtrueの場合、何もしなくても30秒後に隠す
+            if (_autoClose) {
+                toastTimeout = setTimeout(() => {
+                    // エラー時のポップアップ通知を隠す
+                    toastError.classList.remove('translate-y-0', 'opacity-100');
+                    toastError.classList.add('hidden');
+                }, 30000);
+            }
+        }
 
 
         // QRスキャン成功デモ
