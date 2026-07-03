@@ -47,10 +47,8 @@
     </style>
 </head>
 <body class="bg-slate-950 text-white font-sans overflow-hidden select-none h-screen w-full flex justify-center items-center">
-
     <!-- モバイル風コンテナ（PC閲覧時でもスマホの縦長を体験できるように幅を制限、スマホ実機では全画面） -->
     <div id="containor" class="relative w-full max-w-md h-full bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800 translate-y-0 opacity-0">
-
         <!-- カメラレイヤー & ビジュアル背景 -->
         <div class="absolute inset-0 z-0 bg-slate-950">
             <canvas id="camera-canvas"></canvas>
@@ -80,30 +78,39 @@
 
         <!-- ヘッダ部 -->
         <header class="relative z-20 w-full pt-safe px-6 pb-4 bg-black">
-            <div class="pt-6 flex flex-col gap-1.5">
-                <!-- タイトル ＆ 日付 -->
-                <div class="flex items-baseline justify-between">
-                    <h1 class="text-xl font-bold tracking-wider text-slate-100 drop-shadow">会議受付</h1>
-                    <span class="text-xs font-semibold px-2 py-0.5 bg-slate-800/80 border border-slate-700 rounded-full text-slate-300 drop-shadow">
-                        2026年7月1日(水)
-                    </span>
+            <div class="pt-6 flex items-stretch gap-4">
+                <!-- タイトル -->
+                <div class="flex items-center flex-shrink-0">
+                    <h1 class="text-xl font-bold tracking-wider text-slate-100 drop-shadow">
+                        会議受付
+                    </h1>
                 </div>
-                
-                <!-- 会場情報 -->
-                <div class="flex items-center gap-2 mt-1 text-xs text-emerald-400 font-medium bg-slate-900/85 border border-emerald-500/30 w-fit px-3 py-1.5 rounded-lg backdrop-blur-md shadow-lg shadow-emerald-950/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    <span>会場：第1カンファレンスルーム</span>
+
+                <!-- 日付＆会場 -->
+                <div class="flex items-end flex-col gap-1 justify-center flex-grow">
+                    <!-- 日付 -->
+                    <div class="flex items-center gap-2 text-xs text-slate-300 font-medium bg-slate-900/85 border border-slate-500/30 w-fit px-3 py-1.5 rounded-lg backdrop-blur-md shadow-lg shadow-slate-950/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <span>2026/12/18(金) 13:00</span>
+                    </div>
+
+                    <!-- 会場 -->
+                    <div class="flex items-center gap-2 text-xs text-slate-300 font-medium bg-slate-900/85 border border-slate-500/30 w-fit px-3 py-1.5 rounded-lg backdrop-blur-md shadow-lg shadow-slate-950/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <span>ホテルマリナーズコート東京 4F 白鳳</span>
+                    </div>
                 </div>
             </div>
         </header>
 
         <!-- メイン表示領域（モード切り替え） -->
         <main class="relative z-20 flex-1 flex flex-col justify-center items-center px-6">
-            
-            <!-- ── QRコード読み取りモード ── -->
+            <!-- QRコード読み取りモード -->
             <div id="mode-qr" class="w-full flex flex-col items-center transition-all duration-500 transform scale-100 opacity-100">
                 <div class="text-center">
                     <div class="text-emerald-400 font-bold text-lg tracking-wider uppercase mb-1 drop-shadow flex items-center justify-center gap-1.5 animate-pulse">
@@ -139,7 +146,7 @@
                 </div>
             </div>
 
-            <!-- ── 手動入力モード ── -->
+            <!-- 手動入力モード -->
             <div id="mode-manual" class="hidden w-full flex flex-col items-center gap-6 transition-all duration-500 transform scale-95 opacity-0">
                 <div class="text-center">
                     <div class="text-amber-400 font-bold text-sm tracking-wider uppercase mb-1 drop-shadow flex items-center justify-center gap-1.5">
@@ -159,7 +166,11 @@
                             <input type="tel" id="manual-input" placeholder="例: 123456" 
                                    class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3.5 text-center text-lg font-bold font-mono tracking-widest text-slate-100 placeholder-slate-600 outline-none transition-all">
                             <button id="clear-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="m15 9-6 6"/>
+                                    <path d="m9 9 6 6"/>
+                                </svg>
                             </button>
                         </div>
                     </div>
@@ -175,7 +186,9 @@
 
                 <div class="flex items-center gap-1 text-slate-400 text-[10px]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" x2="12" y1="8" y2="12"/>
+                        <line x1="12" x2="12.01" y1="16" y2="16"/>
                     </svg>
                     <span>案内状に記載されている6桁の番号です</span>
                 </div>
@@ -217,30 +230,6 @@
                 </button>
             </div>
         </footer>
-
-        <!-- 成功時のポップアップ通知（トーストUI） -->
-        <div id="toast" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
-
-            <!-- 成功時のアイコン -->
-            <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                </svg>
-            </div>
-
-            <!-- メッセージ -->
-            <div class="flex-1">
-                <div id="toast-message" class="text-sm text-emerald-400 mt-0.5 mb-1.5">
-                    受付を完了しました
-                </div>
-                <div id="toast-detail" class="text-lg font-bold text-slate-100">
-                    所属 \n 氏名
-                </div>
-                <div id="toast-detail" class="text-3xl font-bold text-red-400 m-4">
-                    座席： A-1 
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- 設定データ取得待ちのポップアップ通知（トーストUI） -->
@@ -291,6 +280,30 @@
         <button type="button" id="btn-appInfo-close" class="inline-flex cursor-not-allowed items-center rounded-md bg-indigo-500 px-4 py-2 text-sm leading-6 font-semibold text-white transition duration-150 ease-in-out hover:bg-indigo-400">
             閉じる
         </button>
+    </div>
+
+    <!-- 成功時のポップアップ通知（トーストUI） -->
+    <div id="toast" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-500 backdrop-blur-md">
+
+        <!-- 成功時のアイコン -->
+        <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+
+        <!-- メッセージ -->
+        <div class="flex-1">
+            <div id="toast-message" class="text-sm text-emerald-400 mt-0.5 mb-1.5">
+                受付を完了しました
+            </div>
+            <div id="toast-detail" class="text-lg font-bold text-slate-100">
+                所属 \n 氏名
+            </div>
+            <div id="toast-detail" class="text-3xl font-bold text-red-400 m-4">
+                座席： A-1 
+            </div>
+        </div>
     </div>
 
     <!-- 失敗時のポップアップ通知（トーストUI） -->
@@ -557,6 +570,23 @@
 
         /** 画面ロード時の処理 */
         window.onload = async function() {
+            // GETパラメータの取得
+            const params = new URLSearchParams(window.location.search);
+            console.log('GETパラメータ');
+            console.table({
+                pass: params.get('pass')
+                ,mode: params.get('mode')
+                ,date: params.get('date')
+            });
+
+
+
+
+
+
+
+
+
             // 設定データ取得待ちの表示
             clearTimeout(toastTimeout);
             toastDataWait.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
@@ -770,50 +800,6 @@
                 submitBtn.click();
             }
         });
-    
-        /*
-        // ★ここにGASで発行したウェブアプリのURLを貼り付けます★
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzykP8C3V2GfIn8V28C-FaGUND510AQ7Q-mqNgmS1o3er1-pJWNmGU2OEMeKbgKArEa/exec"; 
-
-        let isProcessing = false;
-
-        // QRコード読み取り成功時の処理
-        function onScanSuccess(decodedText, decodedResult) {
-        if (isProcessing) return; // 連続読み取り防止のロック
-        isProcessing = true;
-
-        const resultDiv = document.getElementById('result');
-        resultDiv.className = 'info';
-        resultDiv.textContent = '通信中... (' + decodedText + ')';
-
-        // GASへデータを送信（CORSエラーを避けるためGETメソッドを使用）
-        fetch(`${GAS_URL}?id=${encodeURIComponent(decodedText)}`)
-            .then(response => response.json())
-            .then(data => {
-            // GASからの返答をもとに画面を更新
-            resultDiv.className = data.success ? 'success' : 'error';
-            resultDiv.textContent = data.message;
-            
-            // 2秒後に次の読み取りを再開
-            setTimeout(() => {
-                isProcessing = false;
-                resultDiv.className = 'info';
-                resultDiv.textContent = '次のQRコードをかざしてください';
-            }, 2000);
-            })
-            .catch(error => {
-            resultDiv.className = 'error';
-            resultDiv.textContent = '通信エラーが発生しました';
-            setTimeout(() => { isProcessing = false; }, 3000);
-            });
-        }
-
-        // スキャナーの初期化と起動
-        const html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false
-        );
-        html5QrcodeScanner.render(onScanSuccess);
-        */
     </script>
 </body>
 </html>
