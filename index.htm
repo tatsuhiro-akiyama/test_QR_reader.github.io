@@ -654,6 +654,7 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: (USE_PHONE ? 'environment': 'user')
+                        ,aspectRatio: { ideal: 0.5625 }     // スマホの縦持ちに最適なアスペクト比と解像度を指定（9:16 → 9÷16=0.5625）
                         ,width: (USE_PHONE ? CANVAS_HEIGHT*2: CANVAS_WIDTH*2)    // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
                         ,height: (USE_PHONE ? CANVAS_WIDTH*2: CANVAS_HEIGHT*2)   // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
                     }
@@ -681,9 +682,6 @@
                     flgCaramaRun = true;
                     startScanLoop();
                 };
-
-                // QRコードの検出
-                //checkImage();
 
             } catch (err) {
                 console.error("Camera access error:", err);
