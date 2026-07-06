@@ -89,7 +89,7 @@
             <div class="pt-6 flex items-stretch gap-4">
                 <!-- タイトル -->
                 <div class="flex items-center flex-shrink-0">
-                    <h1 class="text-xl font-bold tracking-wider text-slate-100 drop-shadow">
+                    <h1 id="appli-title" class="text-xl font-bold tracking-wider text-slate-100 drop-shadow">
                         会議受付
                     </h1>
                 </div>
@@ -101,7 +101,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        <span>2026/12/18(金) 13:00</span>
+                        <span id="appli-datetime">2026/12/18(金) 13:00</span>
                     </div>
 
                     <!-- 会場 -->
@@ -110,7 +110,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                         </svg>
-                        <span>ホテルマリナーズコート東京 4F 白鳳</span>
+                        <span id="appli-venue">ホテルマリナーズコート東京 4F 白鳳</span>
                     </div>
                 </div>
             </div>
@@ -247,7 +247,7 @@
     </div>
 
     <!-- 設定データ取得待ちのポップアップ通知 -->
-    <div id="toast-getData-wait" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+    <div id="toast-getData-wait" class="absolute top-[230px] left-auto right-auto w-[400px] z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
         <div class="flex flex-center flex-center items-center justify-center">
             <!-- スピナー -->
             <svg class="mr-3 -ml-1 size-8 text-emerald-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -262,9 +262,9 @@
     </div>
 
     <!-- 起動時インフォメーションのポップアップ通知 -->
-    <div id="toast-appli-info" class="absolute top-[130px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+    <div id="toast-appli-info" class="absolute top-[130px] left-auto right-auto w-[400px] z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
         <!-- アプリ名＆バージョン -->
-        <div id="toast-message" class="text-lg text-center font-bold text-white mt-0.5">
+        <div class="text-lg text-center font-bold text-white mt-0.5">
             会議受付アプリ[QR]
             <!-- バージョン -->
             <div class="text-sm text-emerald-400">
@@ -296,7 +296,7 @@
     </div>
 
     <!-- 成功時のポップアップ通知 -->
-    <div id="toast" class="absolute top-[230px] left-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+    <div id="toast" class="absolute top-[230px] left-auto right-auto w-[400px] z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
         <!-- アイコン -->
         <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -306,20 +306,20 @@
 
         <!-- メッセージ -->
         <div class="flex-1">
-            <div id="toast-message" class="text-sm text-emerald-400 mt-0.5 mb-1.5">
+            <div class="text-sm text-emerald-400 mt-0.5 mb-1.5">
                 受付を完了しました
             </div>
-            <div id="toast-detail" class="text-lg font-bold text-slate-100">
+            <div id="toast-message" class="text-lg font-bold text-slate-100">
                 所属 \n 氏名
             </div>
-            <div id="toast-detail" class="text-3xl font-bold text-red-400 m-4">
+            <div id="toast-seat" class="text-3xl font-bold text-red-400 m-4">
                 座席： A-1 
             </div>
         </div>
     </div>
 
     <!-- エラー時のポップアップ通知 -->
-    <div id="toast-error" class="absolute top-[230px] left-6 right-6 z-50 bg-red-950 border border-red-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+    <div id="toast-error" class="absolute top-[230px] left-auto right-auto w-[400px] z-50 bg-red-950 border border-red-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
         <!-- アイコン -->
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 text-red-500">
             <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -344,15 +344,17 @@
         /** GASから取得した設定情報
          * @property {string}  title                     - 会議名称
          * @property {string}  version                   - アプリバージョン
-         * @property {string}  app_mode                  - アプリ動作モード
-         * @property {string}  mode
+         * @property {string}  app_mode                  - アプリ動作モード（動作確認 or 本番）
+         * @property {string}  mode                      - アプリ起動モード（会議受付 or 懇親会受付）
          * @property {object}  info_message              - アプリ更新履歴
          * @property {string}  pass                      - アプリ起動用パスワード
          * @property {string}  date                      - 会議日程（yyyy/mm/dd）
          * @property {string}  date_jp                   - 会議日程（yyyy年mm月dd日）
          * @property {string}  venue_meeting             - 会議の会場名称
+         * @property {string}  meeting_time              - 会議開始時刻（hh:mm）
          * @property {string}  seating_chart_meeting     - 会議会場の座席画像URL
          * @property {string}  venue_gathering           - 懇親会の会場名称
+         * @property {string}  gathering_time            - 懇親会開始時刻（hh:mm）
          * @property {string}  seating_chart_gathering   - 懇親会会場の座席画像URL
          * @property {string}  mail_from                 - メール宛先
          * @property {object}  no_send_mail_dept         - 非メール送信対象の所属
@@ -413,8 +415,6 @@
         const submitBtn = document.getElementById('submit-btn');
         const clearBtn = document.getElementById('clear-btn');
         const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
-        const toastDetail = document.getElementById('toast-detail');
 
         /** 設定データ取得待ちのポップアップ通知 */
         const toastDataWait = document.getElementById('toast-getData-wait');
@@ -495,6 +495,7 @@
 
                 // 取得結果
                 SETTING_DATA = data.settingData;
+                SETTING_DATA.mode = args.mode_jp;
                 console.table(SETTING_DATA);
 
                 // 初期化時に社員配列をハッシュテーブルに変換する
@@ -525,6 +526,9 @@
                 return false;
             }
 
+            // アプリ情報の記述
+            drawSettingData(SETTING_DATA);
+
             // 起動時インフォメーションの表示
             showAppliInfo(
                 SETTING_DATA.version
@@ -551,6 +555,7 @@
             console.table({
                 pass: params.get('pass')
                 ,mode: params.get('mode')
+                ,mode_jp: params.get('mode')
                 ,date: params.get('date')
             });
             console.groupEnd('GETパラメータの取得');
@@ -558,6 +563,7 @@
             return {
                 pass: params.get('pass')
                 ,mode: params.get('mode')
+                ,mode_jp: params.get('mode')
                 ,date: params.get('date')
             };
         }
@@ -572,10 +578,16 @@
             // modeの値が規定値以外
             switch (_params.mode) {
                 case 'recep':
+                    _params.mode_jp = '会議受付';
+                    break;
                 case 'gathering':
+                    _params.mode_jp = '懇親会受付';
+                    break;
                 case 'report':
+                    _params.mode_jp = '遅刻欠席連絡';
                     break;
                 default:
+                    _params.mode_jp = 'ｘｘｘ';
                     console.error('GETパラメータ不正：modeの値が規定値以外');
                     return false;
                     break;
@@ -645,6 +657,25 @@
 
             // 戻り値
             return true;
+        }
+        /***/
+        function drawSettingData(_data) {
+            const title = document.getElementById('appli-title');
+            const datetime = document.getElementById('appli-datetime');
+            const venue = document.getElementById('appli-venue');
+
+            title.innerText = _data.mode;
+            datetime.innerText = _data.date;
+            switch(_data.mode) {
+                case '会議受付':
+                    datetime.innerText += ' ' + _data.meeting_time;
+                    venue.innerText = _data.venue_meeting;
+                    break;
+                case '懇親会受付':
+                    datetime.innerText += ' ' + _data.gathering_time;
+                    venue.innerText = _data.venue_gathering;
+                    break;
+            }
         }
 
         /** カメラストリーム起動 */
@@ -770,11 +801,15 @@
                         // QRコード内容を画面に描画
                         console.group('QRコード検出：正しいQRコード');
                         console.table(_qr_data);
+
+
+                        let _employee = EMPLOYEE_INFO.get(_qr_data[1]);
+                        console.table(_employee);
                         showToastSuccess(
-                            "[Demo]QRコード",
-                            _qr_data[1],
-                            true
+                            _employee.dept + '<br/>' + _employee.name
+                            ,_employee.seat_meeting
                         );
+
                         setTimeout(() => {
                             // カメラ映像を再開する
                             cameraReStart();
@@ -895,36 +930,26 @@
         }
         btnAppInfoClose.addEventListener('click', closeToastAppInfo);
         /** 受付完了時ポップアップ通知の表示 */
-        function showToastSuccess(message, detail, isSuccess = true) {
+        function showToastSuccess(_message, _seat) {
             clearTimeout(toastTimeout);
             
-            toastMessage.innerText = message;
-            toastDetail.innerText = detail;
+            const toastMessage = document.getElementById('toast-message');
+            const toastSeat = document.getElementById('toast-seat');
+            toastMessage.innerHTML = _message;
+            toastSeat.innerText = '座席： ' + _seat;
 
-            if (isSuccess) {
-                toast.classList.remove('border-rose-500/40');
-                toast.classList.add('border-emerald-500/40');
-                toastDetail.classList.remove('text-rose-400');
-                toastDetail.classList.add('text-emerald-400');
-            } else {
-                toast.classList.remove('border-emerald-500/40');
-                toast.classList.add('border-rose-500/40');
-                toastDetail.classList.remove('text-emerald-400');
-                toastDetail.classList.add('text-rose-400');
-            }
-
-            // トースト表示アニメーション
+            // 表示
             toast.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
 
             // 成功音を鳴らす
-            playBeep(isSuccess);
+            playBeep(true);
 
-            // 3秒後に隠す
+            // 2.5秒後に隠す
             toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
                 toast.classList.remove('translate-y-0', 'opacity-100');
-            }, 3000);
+                toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
+            }, 2500);
         }
         /** エラー時ポップアップ通知の表示 */
         function showToastError(_message, _autoClose = true) {
@@ -950,27 +975,13 @@
 
         // QRスキャン成功デモ
         scanTarget.addEventListener('click', () => {
-            // ランダムにゲスト名を変更して受付成功デモ
-            const mockGuests = [
-                { name: "ダミー 一郎", dept: "クラウドインテグレーション事業部" }
-                ,{ name: "ダミー 次郎", dept: "人財担当" }
-                ,{ name: "ダミー 三郎", dept: "営業部" }
-                ,{ name: "ダミー 四郎", dept: "ビジネスプロセス事業部" }
-                ,{ name: "ダミー 五郎", dept: "ビジネスイノベーション事業部" }
-                ,{ name: "ダミー 六郎", dept: "バリュークリエイト事業部" }
-                ,{ name: "ダミー 七郎", dept: "ナレッジフォーカス事業部" }
-                ,{ name: "ダミー 八郎", dept: "HMB" }
-                ,{ name: "ダミー 九郎", dept: "COSMOPIA" }
-                ,{ name: "ダミー 十郎", dept: "TARA" }
-                ,{ name: "秋山 竜宏", dept: "ソフトウェアデザイン事業部" }
-                ,{ name: "齋藤 拓", dept: "ソフトウェアデザイン事業部" }
-            ];
-            const randomGuest = mockGuests[Math.floor(Math.random() * mockGuests.length)];
-            
+            // ランダムにデータ取得して受付成功時ポップアップを表示
+            const randomId = Math.floor(Math.random() * EMPLOYEE_INFO.size);
+            const _employee = Array.from(EMPLOYEE_INFO)[randomId][1];
+            console.table(_employee);
             showToastSuccess(
-                "受付を完了しました",
-                randomGuest.dept + "\n" + randomGuest.name,
-                true
+                _employee.dept + '<br/>' + _employee.name
+                ,_employee.seat_meeting
             );
         });
         // 手動入力フォーム制御
@@ -981,7 +992,7 @@
                 return;
             }
             // 受付シミュレーション
-            showToastSuccess(`番号: ${val} の受付が完了しました`, "確認用パスコード認証成功", true);
+            showToastSuccess(`番号: ${val} の受付が完了しました`, "確認用パスコード認証成功");
             manualInput.value = "";
         });
         clearBtn.addEventListener('click', () => {
