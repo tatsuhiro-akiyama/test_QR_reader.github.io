@@ -297,12 +297,13 @@
 
     <!-- 成功時のポップアップ通知 -->
     <div id="toast" class="absolute top-[230px] left-auto right-auto w-[320px] z-50 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
-        <!-- アイコン -->
+        <!-- アイコン
         <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
             </svg>
         </div>
+        -->
 
         <!-- メッセージ -->
         <div class="flex-1">
@@ -395,7 +396,7 @@
 
         // DOM要素の取得
         const containor = document.getElementById('containor');
-        var video = document.getElementById('camera-stream');
+        const video = document.getElementById('camera-stream');
         const canvas = document.getElementById('camera-canvas');
 
         const placeholder = document.getElementById('camera-placeholder');
@@ -423,11 +424,10 @@
         const btnAppInfoClose = document.getElementById('btn-appInfo-close');
         /** エラー時のポップアップ通知 */
         const toastError = document.getElementById('toast-error');
-
         /** 不正QRコードの場合のメッセージ */
         const qrErrMessage = document.getElementById('qr-error-message');
 
-        // 音声フィードバック用のWeb Audio API
+        /* 音声用のWebAudio API */
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(success = true) {
             if (audioCtx.state === 'suspended') {
@@ -658,7 +658,7 @@
             // 戻り値
             return true;
         }
-        /***/
+        /** 設定情報画面描画 */
         function drawSettingData(_data) {
             const title = document.getElementById('appli-title');
             const datetime = document.getElementById('appli-datetime');
@@ -686,8 +686,8 @@
                     video: {
                         facingMode: (USE_PHONE ? 'environment': 'user')
                         ,aspectRatio: { ideal: 0.5625 }     // スマホの縦持ちに最適なアスペクト比と解像度を指定（9:16 → 9÷16=0.5625）
-                        ,width: (USE_PHONE ? CANVAS_HEIGHT*2: CANVAS_WIDTH*2)    // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
-                        ,height: (USE_PHONE ? CANVAS_WIDTH*2: CANVAS_HEIGHT*2)   // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
+                        ,width: (USE_PHONE ? CANVAS_HEIGHT*1.5: CANVAS_WIDTH*1.5)    // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
+                        ,height: (USE_PHONE ? CANVAS_WIDTH*1.5: CANVAS_HEIGHT*1.5)   // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
                     }
                     ,audio: false
                 });
@@ -834,6 +834,92 @@
             }
         }
 
+        let toastTimeout;
+        /** 起動時インフォメーションの表示 */ 
+        function showAppliInfo(_version, _app_mode, _ary_message) {
+            clearTimeout(toastTimeout);
+
+            // バージョン情報
+            const appliVersion = document.getElementById('appli-version');
+            appliVersion.innerText = _version;
+
+            // 動作モード（動作確認モードの場合のみ表示）
+            const appliMode = document.getElementById('appli-mode');
+            if (_app_mode === "動作確認モード") {
+                appliMode.classList.remove('hidden');
+            }
+
+            // インフォメーション
+            const oldnew = document.getElementById('old-new-info');
+            _ary_message.forEach((item) => {
+                let div = document.createElement('div');
+                div.innerText = item;
+                oldnew.append(div);
+            });
+
+            // トースト表示アニメーション
+            toastAppInfo.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
+            toastAppInfo.classList.add('translate-y-0', 'opacity-100');
+
+            // 何もしなくても60秒後に隠す
+            toastTimeout = setTimeout(() => {
+                closeToastAppInfo();
+            }, 60000);
+        }
+        /** 起動時インフォメーションを隠す */
+        function closeToastAppInfo() {
+            // 起動時インフォメーションを隠す
+            toastAppInfo.classList.remove('translate-y-0', 'opacity-100');
+            toastAppInfo.classList.add('hidden');
+        }
+        btnAppInfoClose.addEventListener('click', closeToastAppInfo);
+        /** 受付完了時ポップアップ通知の表示 */
+        function showToastSuccess(_message, _seat) {
+            clearTimeout(toastTimeout);
+            
+            const toastMessage = document.getElementById('toast-message');
+            const toastSeat = document.getElementById('toast-seat');
+            toastMessage.innerHTML = _message;
+            if (!_seat || _seat === '') {
+                _seat = '運営に確認<br/>※事前欠席→参加';
+            }
+            toastSeat.innerHTML = '座席： ' + _seat;
+
+            // 表示
+            toast.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            // 成功音を鳴らす
+            playBeep(true);
+
+            // 3秒後に隠す
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
+            }, 3000);
+        }
+        /** エラー時ポップアップ通知の表示 */
+        function showToastError(_message, _autoClose = true) {
+            clearTimeout(toastTimeout);
+
+            // エラーメッセージ
+            const toastErrorMessage = document.getElementById('toast-error-message');
+            toastErrorMessage.innerHTML = _message;
+
+            // トースト表示アニメーション
+            toastError.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
+            toastError.classList.add('translate-y-0', 'opacity-100');
+
+            // _autoCloseがtrueの場合、何もしなくても30秒後に隠す
+            if (_autoClose) {
+                toastTimeout = setTimeout(() => {
+                    // エラー時のポップアップ通知を隠す
+                    toastError.classList.remove('translate-y-0', 'opacity-100');
+                    toastError.classList.add('hidden');
+                }, 30000);
+            }
+        }
+
 
         // 2. モード切替ロジック
         function switchToQr() {
@@ -890,88 +976,6 @@
         btnModeQr.addEventListener('click', switchToQr);
         btnModeManual.addEventListener('click', switchToManual);
 
-        let toastTimeout;
-        /** 起動時インフォメーションの表示 */ 
-        function showAppliInfo(_version, _app_mode, _ary_message) {
-            clearTimeout(toastTimeout);
-
-            // バージョン情報
-            const appliVersion = document.getElementById('appli-version');
-            appliVersion.innerText = _version;
-
-            // 動作モード（動作確認モードの場合のみ表示）
-            const appliMode = document.getElementById('appli-mode');
-            if (_app_mode === "動作確認モード") {
-                appliMode.classList.remove('hidden');
-            }
-
-            // インフォメーション
-            const oldnew = document.getElementById('old-new-info');
-            _ary_message.forEach((item) => {
-                let div = document.createElement('div');
-                div.innerText = item;
-                oldnew.append(div);
-            });
-
-            // トースト表示アニメーション
-            toastAppInfo.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
-            toastAppInfo.classList.add('translate-y-0', 'opacity-100');
-
-            // 何もしなくても60秒後に隠す
-            toastTimeout = setTimeout(() => {
-                closeToastAppInfo();
-            }, 60000);
-        }
-        /** 起動時インフォメーションを隠す */
-        function closeToastAppInfo() {
-            // 起動時インフォメーションを隠す
-            toastAppInfo.classList.remove('translate-y-0', 'opacity-100');
-            toastAppInfo.classList.add('hidden');
-        }
-        btnAppInfoClose.addEventListener('click', closeToastAppInfo);
-        /** 受付完了時ポップアップ通知の表示 */
-        function showToastSuccess(_message, _seat) {
-            clearTimeout(toastTimeout);
-            
-            const toastMessage = document.getElementById('toast-message');
-            const toastSeat = document.getElementById('toast-seat');
-            toastMessage.innerHTML = _message;
-            toastSeat.innerText = '座席： ' + _seat;
-
-            // 表示
-            toast.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            // 成功音を鳴らす
-            playBeep(true);
-
-            // 2.5秒後に隠す
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
-            }, 2500);
-        }
-        /** エラー時ポップアップ通知の表示 */
-        function showToastError(_message, _autoClose = true) {
-            clearTimeout(toastTimeout);
-
-            // エラーメッセージ
-            const toastErrorMessage = document.getElementById('toast-error-message');
-            toastErrorMessage.innerHTML = _message;
-
-            // トースト表示アニメーション
-            toastError.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
-            toastError.classList.add('translate-y-0', 'opacity-100');
-
-            // _autoCloseがtrueの場合、何もしなくても30秒後に隠す
-            if (_autoClose) {
-                toastTimeout = setTimeout(() => {
-                    // エラー時のポップアップ通知を隠す
-                    toastError.classList.remove('translate-y-0', 'opacity-100');
-                    toastError.classList.add('hidden');
-                }, 30000);
-            }
-        }
 
         // QRスキャン成功デモ
         scanTarget.addEventListener('click', () => {
