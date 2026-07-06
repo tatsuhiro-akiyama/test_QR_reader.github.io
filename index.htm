@@ -52,11 +52,6 @@
         .pt-safe {
             padding-top: env(safe-area-inset-top, 1rem);
         }
-
-        /* カスタムスクロールバー非表示 */
-        ::-webkit-scrollbar {
-            display: none;
-        }
     </style>
 </head>
 <body class="bg-slate-950 text-white font-sans overflow-hidden select-none h-screen w-full flex justify-center items-center">
@@ -286,7 +281,8 @@
         </div>
 
         <!-- インフォメーション -->
-        <div id="appli-info" class="text-sm text-white h-16 overflow-y-auto"></div>
+        <div id="old-new-info" class="text-sm text-white h-[73px] overflow-y-scroll">
+        </div>
 
         <!-- 注意書き -->
         <div class="text-sm text-white">
@@ -470,197 +466,6 @@
         }
 
 
-        /** URLFetchを実行しデータを取得する */
-        async function getFetchData(_url, _param) {
-            try {
-                // 💡リロード対策：既存の未完了リクエストがあれば切断
-                if (fetchController) { fetchController.abort(); }
-                fetchController = new AbortController();
-
-                console.log('getFetchData:', _url);
-                const response = await fetch(
-                                            _url
-                                            ,{
-                                                method: "POST"
-                                                ,signal: fetchController.signal
-                                                ,headers: {"Content-Type": "text/plain"}
-                                                ,body: JSON.stringify(_param)
-                                            }
-                                        );
-                const data = await response.json();
-                if (data.status === "success") {
-                    // GAS処理成功
-                    console.log('URLFetch正常終了');
-                    return data;
-                } else {
-                    // GAS処理失敗
-                    console.error('URLFetch呼び出し先でエラー発生：', data);
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                // GAS処理呼び出しに失敗
-                console.error('URLFetch呼び出しに失敗：', error);
-                throw new Error(error.message);
-            }
-        }
-
-
-        /** カメラストリーム起動 */
-        async function startCamera() {
-            try {
-                cameraStatusText.innerText = "Accessing Camera...";
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: (USE_PHONE ? 'environment': 'user')
-                        ,width: (USE_PHONE ? CANVAS_HEIGHT*2: CANVAS_WIDTH*2)    // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
-                        ,height: (USE_PHONE ? CANVAS_WIDTH*2: CANVAS_HEIGHT*2)   // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
-                    }
-                    ,audio: false
-                });
-                
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    video.play();
-                    video.classList.remove('opacity-0');
-                    video.classList.add('opacity-100');
-                    placeholder.classList.add('opacity-0');
-                    setTimeout(() => {
-                        placeholder.style.display = 'none';
-                    }, 700);
-
-                    ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    canvas.width = CANVAS_WIDTH;
-                    canvas.height = CANVAS_HEIGHT;
-                    console.table({
-                        videoWidth: canvas.width
-                        ,videoHeight: canvas.height
-                    });
-
-                    flgCaramaRun = true;
-                    startScanLoop();
-                };
-
-                // QRコードの検出
-                //checkImage();
-
-            } catch (err) {
-                console.error("Camera access error:", err);
-                cameraStatusText.innerText = "SIMULATED CAMERA ACTIVE";
-                cameraStatusText.classList.add('text-emerald-500');
-            }
-        }
-        /** 💡ループ安定化：スキャンタイマーの開始管理 */
-        function startScanLoop() {
-            console.log('startScanLoop');
-            if (scanTimerId) { clearTimeout(scanTimerId); }
-            scanTimerId = setTimeout(checkImage, 800);
-        }
-        /** カメラ映像を一旦停止 */
-        function cameraStop() {
-            flgCaramaRun = false;
-            if (scanTimerId) { clearTimeout(scanTimerId); scanTimerId = null; } // 💡完全にタイマーを止める
-            // カメラ停止
-            video.pause();
-            console.log('カメラ停止');
-        }
-        /** カメラ映像を再開 */
-        function cameraReStart() {
-            // 再起呼び出し
-            flgCaramaRun = true;
-            // カメラ再開
-            video.play();
-            console.log('カメラ再開');
-            // ループを再起動
-            startScanLoop();
-        }
-
-        /** QRコードの検出 */
-        async function checkImage() {
-            // settimeoutで常に再起呼び出しされるため、カメラ停止中は処理をせずに抜ける
-            if (!flgCaramaRun) { return; }
-
-            try {
-                // 💡描画エラー防止：ビデオのフレームが描画可能（readyState >= 2）かチェック
-                if (video.readyState >= video.HAVE_CURRENT_DATA) {
-                    // imageDataを作ってjsQRに渡す
-                    ctx.drawImage(video, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                    const imageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
-                    // QRコードが検出できた場合
-                    if (code) {
-                        // カメラ映像を一旦停止する
-                        cameraStop();
-
-                        // 正しいQRコードかどうかのフラグ（初期値：false）
-                        let _isCorrect = false;
-
-                        // QRコード内容の入力チェック
-                        let _qr_data = code.data.split(',').map((_val) => _val.trim());
-                        console.table(_qr_data);
-                        if (_qr_data.length != 2) { console.warn('不正なQRコード検出：データ件数', _qr_data); }
-                        else if (typeof _qr_data[0] != 'string') { console.warn('不正なQRコード検出：1つ目のデータ型', _qr_data); }
-                        else if (typeof _qr_data[1] != 'string') { console.warn('不正なQRコード検出：2つ目のデータ型', _qr_data); }
-                        else {
-                            // _qr_data[0]の値がスプレッドシート取得データの日付と一致するかチェック
-                            if (_qr_data[0] != SETTING_DATA.date.trim()) { console.warn('不正なQRコード検出：設定情報の日付と相違', _qr_data); }
-                            // _qr_data[1]の値で社員番号を検索し、該当者がいるかチェック
-                            else if (EMPLOYEE_INFO.has(_qr_data[1])) {
-                                _isCorrect = true;
-                            }
-                        }
-
-                        // 不正なQRコードだった場合、「不正なQR」の文字を表示し処理を抜ける
-                        if (!_isCorrect) {
-                            qrErrMessage.classList.remove('hidden');
-                            scanTarget.classList.remove('bg-slate-900/10');
-                            scanTarget.classList.add('bg-slate-900/50');
-                            // エラー音
-                            playBeep(false);
-
-                            setTimeout(() => {
-                                // 不正QRエラーメッセージを隠す
-                                qrErrMessage.classList.add('hidden');
-                                scanTarget.classList.remove('bg-slate-900/50');
-                                scanTarget.classList.add('bg-slate-900/10');
-                                // カメラ映像を再開する
-                                cameraReStart();
-                            }, 2000);
-                            return;
-                        }
-
-                        // QRコード内容を画面に描画
-                        console.group('QRコード検出：正しいQRコード');
-                        console.table(_qr_data);
-                        showNotification(
-                            "[Demo]QRコード",
-                            _qr_data[1],
-                            true
-                        );
-                        setTimeout(() => {
-                            // カメラ映像を再開する
-                            cameraReStart();
-                        }, 3000);
-                        console.groupEnd();
-                        return;
-                    }
-                }
-
-            }  catch (e) {
-                // エラーが発生した場合、何も処理しない
-                console.error(e);
-                showToastError(
-                    e.message
-                    ,false
-                );
-            }
-            
-            // 💡ループ安定化：正常時・未検出時のみ、安全に次のループを呼び出し
-            if (flgCaramaRun) {
-                scanTimerId = setTimeout(checkImage, 800);
-            }
-        }
-
         /** 画面ロード時の処理 */
         window.onload = async function() {
             // 💡ページを離れる/リロードする直前にリクエストを強制切断（GET化の残骸防止）
@@ -739,7 +544,6 @@
 
             console.log('アプリ起動完了');
         }
-
         /** GETパラメータの取得 */
         function getArguments() {
             // GETパラメータの取得
@@ -795,6 +599,39 @@
             // 戻り値
             return true;
         }
+        /** URLFetchを実行しデータを取得する */
+        async function getFetchData(_url, _param) {
+            try {
+                // 💡リロード対策：既存の未完了リクエストがあれば切断
+                if (fetchController) { fetchController.abort(); }
+                fetchController = new AbortController();
+
+                console.log('getFetchData:', _url);
+                const response = await fetch(
+                                            _url
+                                            ,{
+                                                method: "POST"
+                                                ,signal: fetchController.signal
+                                                ,headers: {"Content-Type": "text/plain"}
+                                                ,body: JSON.stringify(_param)
+                                            }
+                                        );
+                const data = await response.json();
+                if (data.status === "success") {
+                    // GAS処理成功
+                    console.log('URLFetch正常終了');
+                    return data;
+                } else {
+                    // GAS処理失敗
+                    console.error('URLFetch呼び出し先でエラー発生：', data);
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                // GAS処理呼び出しに失敗
+                console.error('URLFetch呼び出しに失敗：', error);
+                throw new Error(error.message);
+            }
+        }
         /** GETパラメータの判定② */
         function checkParameter(_params) {
             // passの値がnull以外、かつ設定情報のpassの値と相違
@@ -812,6 +649,161 @@
             // 戻り値
             return true;
         }
+
+        /** カメラストリーム起動 */
+        async function startCamera() {
+            try {
+                cameraStatusText.innerText = "Accessing Camera...";
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: (USE_PHONE ? 'environment': 'user')
+                        ,width: (USE_PHONE ? CANVAS_HEIGHT*2: CANVAS_WIDTH*2)    // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
+                        ,height: (USE_PHONE ? CANVAS_WIDTH*2: CANVAS_HEIGHT*2)   // スマホはカメラ映像が縦長のためwidthとheightを入れ替える
+                    }
+                    ,audio: false
+                });
+                
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    video.classList.remove('opacity-0');
+                    video.classList.add('opacity-100');
+                    placeholder.classList.add('opacity-0');
+                    setTimeout(() => {
+                        placeholder.style.display = 'none';
+                    }, 700);
+
+                    ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    canvas.width = CANVAS_WIDTH;
+                    canvas.height = CANVAS_HEIGHT;
+                    console.table({
+                        videoWidth: canvas.width
+                        ,videoHeight: canvas.height
+                    });
+
+                    flgCaramaRun = true;
+                    startScanLoop();
+                };
+
+                // QRコードの検出
+                //checkImage();
+
+            } catch (err) {
+                console.error("Camera access error:", err);
+                cameraStatusText.innerText = "SIMULATED CAMERA ACTIVE";
+                cameraStatusText.classList.add('text-emerald-500');
+            }
+        }
+        /** 💡ループ安定化：スキャンタイマーの開始管理 */
+        function startScanLoop() {
+            if (scanTimerId) { clearTimeout(scanTimerId); }
+            scanTimerId = setTimeout(checkImage, 800);
+        }
+        /** カメラ映像を一旦停止 */
+        function cameraStop() {
+            flgCaramaRun = false;
+            if (scanTimerId) { clearTimeout(scanTimerId); scanTimerId = null; } // 💡完全にタイマーを止める
+            // カメラ停止
+            video.pause();
+            console.log('カメラ停止');
+        }
+        /** カメラ映像を再開 */
+        function cameraReStart() {
+            // 再起呼び出し
+            flgCaramaRun = true;
+            // カメラ再開
+            video.play();
+            console.log('カメラ再開');
+            // ループを再起動
+            startScanLoop();
+        }
+        /** QRコードの検出 */
+        async function checkImage() {
+            // settimeoutで常に再起呼び出しされるため、カメラ停止中は処理をせずに抜ける
+            if (!flgCaramaRun) { return; }
+
+            try {
+                // 💡描画エラー防止：ビデオのフレームが描画可能（readyState >= 2）かチェック
+                if (video.readyState >= video.HAVE_CURRENT_DATA) {
+                    // imageDataを作ってjsQRに渡す
+                    ctx.drawImage(video, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                    const imageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    // QRコードが検出できた場合
+                    if (code) {
+                        // カメラ映像を一旦停止する
+                        cameraStop();
+
+                        // 正しいQRコードかどうかのフラグ（初期値：false）
+                        let _isCorrect = false;
+
+                        // QRコード内容の入力チェック
+                        let _qr_data = code.data.split(',').map((_val) => _val.trim());
+                        console.table(_qr_data);
+                        if (_qr_data.length != 2) { console.warn('不正なQRコード検出：データ件数', _qr_data); }
+                        else if (typeof _qr_data[0] != 'string') { console.warn('不正なQRコード検出：1つ目のデータ型', _qr_data); }
+                        else if (typeof _qr_data[1] != 'string') { console.warn('不正なQRコード検出：2つ目のデータ型', _qr_data); }
+                        else {
+                            // _qr_data[0]の値がスプレッドシート取得データの日付と一致するかチェック
+                            if (_qr_data[0] != SETTING_DATA.date.trim()) { console.warn('不正なQRコード検出：設定情報の日付と相違', _qr_data); }
+                            // _qr_data[1]の値で社員番号を検索し、該当者がいるかチェック
+                            else if (EMPLOYEE_INFO.has(_qr_data[1])) {
+                                _isCorrect = true;
+                            }
+                        }
+
+                        // 不正なQRコードだった場合、「不正なQR」の文字を表示し処理を抜ける
+                        if (!_isCorrect) {
+                            qrErrMessage.classList.remove('hidden');
+                            scanTarget.classList.remove('bg-slate-900/10');
+                            scanTarget.classList.add('bg-slate-900/50');
+                            // エラー音
+                            playBeep(false);
+
+                            setTimeout(() => {
+                                // 不正QRエラーメッセージを隠す
+                                qrErrMessage.classList.add('hidden');
+                                scanTarget.classList.remove('bg-slate-900/50');
+                                scanTarget.classList.add('bg-slate-900/10');
+                                // カメラ映像を再開する
+                                cameraReStart();
+                            }, 2000);
+                            return;
+                        }
+
+                        // QRコード内容を画面に描画
+                        console.group('QRコード検出：正しいQRコード');
+                        console.table(_qr_data);
+                        showToastSuccess(
+                            "[Demo]QRコード",
+                            _qr_data[1],
+                            true
+                        );
+                        setTimeout(() => {
+                            // カメラ映像を再開する
+                            cameraReStart();
+                        }, 3000);
+                        console.groupEnd();
+                        return;
+                    }
+                }
+
+            }  catch (e) {
+                // エラーが発生した場合、何も処理しない
+                console.error(e);
+                showToastError(
+                    e.message
+                    ,false
+                );
+            }
+            
+            // 💡ループ安定化：正常時・未検出時のみ、安全に次のループを呼び出し
+            if (flgCaramaRun) {
+                scanTimerId = setTimeout(checkImage, 800);
+            }
+        }
+
 
         // 2. モード切替ロジック
         function switchToQr() {
@@ -868,14 +860,10 @@
         btnModeQr.addEventListener('click', switchToQr);
         btnModeManual.addEventListener('click', switchToManual);
 
-
-        // 3. インタラクション・通知デモ
         let toastTimeout;
+        /** 起動時インフォメーションの表示 */ 
         function showAppliInfo(_version, _app_mode, _ary_message) {
             clearTimeout(toastTimeout);
-
-
-
 
             // バージョン情報
             const appliVersion = document.getElementById('appli-version');
@@ -888,11 +876,12 @@
             }
 
             // インフォメーション
-            //const appliMode = document.getElementById('appli-mode');
-
-
-
-
+            const oldnew = document.getElementById('old-new-info');
+            _ary_message.forEach((item) => {
+                let div = document.createElement('div');
+                div.innerText = item;
+                oldnew.append(div);
+            });
 
             // トースト表示アニメーション
             toastAppInfo.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
@@ -903,15 +892,15 @@
                 closeToastAppInfo();
             }, 60000);
         }
+        /** 起動時インフォメーションを隠す */
         function closeToastAppInfo() {
             // 起動時インフォメーションを隠す
             toastAppInfo.classList.remove('translate-y-0', 'opacity-100');
             toastAppInfo.classList.add('hidden');
         }
         btnAppInfoClose.addEventListener('click', closeToastAppInfo);
-
-
-        function showNotification(message, detail, isSuccess = true) {
+        /** 受付完了時ポップアップ通知の表示 */
+        function showToastSuccess(message, detail, isSuccess = true) {
             clearTimeout(toastTimeout);
             
             toastMessage.innerText = message;
@@ -942,8 +931,7 @@
                 toast.classList.remove('translate-y-0', 'opacity-100');
             }, 3000);
         }
-
-        /** エラー時のポップアップ通知 */
+        /** エラー時ポップアップ通知の表示 */
         function showToastError(_message, _autoClose = true) {
             clearTimeout(toastTimeout);
 
@@ -965,7 +953,6 @@
             }
         }
 
-
         // QRスキャン成功デモ
         scanTarget.addEventListener('click', () => {
             // ランダムにゲスト名を変更して受付成功デモ
@@ -985,30 +972,27 @@
             ];
             const randomGuest = mockGuests[Math.floor(Math.random() * mockGuests.length)];
             
-            showNotification(
+            showToastSuccess(
                 "受付を完了しました",
                 randomGuest.dept + "\n" + randomGuest.name,
                 true
             );
         });
-
         // 手動入力フォーム制御
         submitBtn.addEventListener('click', () => {
             const val = manualInput.value.trim();
             if (val === "") {
-                showNotification("エラー: 番号を入力してください", "入力フィールドが空です", false);
+                showToastSuccess("エラー: 番号を入力してください", "入力フィールドが空です", false);
                 return;
             }
             // 受付シミュレーション
-            showNotification(`番号: ${val} の受付が完了しました`, "確認用パスコード認証成功", true);
+            showToastSuccess(`番号: ${val} の受付が完了しました`, "確認用パスコード認証成功", true);
             manualInput.value = "";
         });
-
         clearBtn.addEventListener('click', () => {
             manualInput.value = "";
             manualInput.focus();
         });
-
         // キーボードエンターキーでも決定
         manualInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
