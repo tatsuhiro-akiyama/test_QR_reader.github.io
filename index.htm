@@ -426,7 +426,6 @@
 
         /** 不正QRコードの場合のメッセージ */
         const qrErrMessage = document.getElementById('qr-error-message');
-        
 
         // 音声フィードバック用のWeb Audio API
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -440,7 +439,7 @@
             gain.connect(audioCtx.destination);
 
             if (success) {
-                // ピピッというさわやかな2音
+                // 成功時のピピッという音
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -454,8 +453,9 @@
                     gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
                     osc.stop(audioCtx.currentTime + 0.15);
                 }, 160);
+
             } else {
-                // ブブーというエラー音
+                // エラー時のブブーという音
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -464,7 +464,6 @@
                 osc.stop(audioCtx.currentTime + 0.35);
             }
         }
-
 
         /** 画面ロード時の処理 */
         window.onload = async function() {
@@ -498,7 +497,6 @@
                 SETTING_DATA = data.settingData;
                 console.table(SETTING_DATA);
 
-                //EMPLOYEE_INFO = data.employeeInfo;
                 // 初期化時に社員配列をハッシュテーブルに変換する
                 if (Array.isArray(data.employeeInfo)) {
                     EMPLOYEE_INFO = new Map(data.employeeInfo.map(emp => [String(emp.user_no), emp]));
@@ -527,10 +525,6 @@
                 return false;
             }
 
-            // カメラ映像部などのメイン部分を表示
-            containor.classList.remove('hidden');
-            containor.classList.add('opacity-100');
-
             // 起動時インフォメーションの表示
             showAppliInfo(
                 SETTING_DATA.version
@@ -541,6 +535,9 @@
             // カメラの起動
             console.log('カメラ起動');
             startCamera();
+            // カメラ映像部などのメイン部分を表示
+            containor.classList.remove('hidden');
+            containor.classList.add('opacity-100');
 
             console.log('アプリ起動完了');
         }
