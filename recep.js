@@ -40,7 +40,9 @@ var EMPLOYEE_INFO = new Map();
 var fetchController = null;
 
 /** GASのURL送信時に送るパラメータ */
-const sendParam = { action: 'getSettingData' };
+const sendParamSetting = { action: 'getSettingData' };
+var sendParamMeeting = { action: 'updateMeeting' };
+var sendParamgathering = { action: 'updategathering' };
 
 const USE_PHONE = (window.matchMedia('(max-device-width: 768px)').matches);
 const CANVAS_WIDTH = 640;
@@ -195,7 +197,7 @@ window.onload = async function() {
     try {
         // 設定データ＆社員情報一覧の取得
         console.groupCollapsed('設定データ＆社員情報一覧の取得');
-        let data = await getFetchData(GAS_URL, sendParam);
+        let data = await getFetchData(GAS_URL, sendParamSetting);
 
         // 取得結果
         SETTING_DATA = data.settingData;
@@ -528,6 +530,12 @@ async function checkImage() {
                     ,_employee.seat_meeting
                 );
 
+                // GAS更新処理を呼び出し
+                let data = await getFetchData(GAS_URL, sendParamMeeting);
+
+
+
+
                 setTimeout(() => {
                     // カメラ映像を再開する
                     cameraReStart();
@@ -697,15 +705,60 @@ function switchToManual() {
 
 
 /** QRスキャン成功デモ */
-function scanTargetDemo() {
+async function scanTargetDemo() {
     // ランダムにデータ取得して受付成功時ポップアップを表示
-    const randomId = Math.floor(Math.random() * EMPLOYEE_INFO.size);
-    const _employee = Array.from(EMPLOYEE_INFO)[randomId][1];
+    //const randomId = Math.floor(Math.random() * EMPLOYEE_INFO.size);
+
+
+
+
+    const _employee = Array.from(EMPLOYEE_INFO)[95][1];
     console.table(_employee);
     showToastSuccess(
         _employee.dept + '<br/>' + _employee.name
         ,_employee.seat_meeting
     );
+
+    // GAS更新処理を呼び出し
+    const sendData = {
+        // GAS実行処理
+        "action": (SETTING_DATA.mode === '会議受付' ? 'entryMeeting': 'entryGathering')
+        // データ登録用情報
+        ,"data": {
+            "row_no": _employee.row_no
+            ,"user_no": _employee.user_no
+            ,"user_dept": _employee.dept
+            ,"user_name": _employee.name
+            // データ登録＆メール送信用情報
+            ,"title": SETTING_DATA.title
+            ,"date": SETTING_DATA.date_jp
+            ,"venue": (SETTING_DATA.mode === '会議受付' ? SETTING_DATA.venue_meeting: SETTING_DATA.venue_gathering)
+            ,"app_mode": SETTING_DATA.app_mode
+            ,"mode": SETTING_DATA.mode.replace('受付', '')
+            ,"mail_from": SETTING_DATA.mail_from
+            ,"mail_to": _employee.mail
+            ,"mail_attach": (SETTING_DATA.mode === '会議受付' ? SETTING_DATA.seating_chart_meeting: SETTING_DATA.seating_chart_gathering)
+            ,"no_send_mail_dept": SETTING_DATA.no_send_mail_dept.concat()
+            ,"attendance": {
+                "meeting": "参加"
+                ,"gathering": SETTING_DATA.social_gathering
+            }
+            
+            // 座席位置
+            ,"seat": (SETTING_DATA.mode === '会議受付' ? _employee.seat_meeting: _employee.seat-gathering)
+            ,"comment": ''  //reason
+
+            ,"lost_qr_cord": false   //$('#checkLostQrCode').prop('checked')
+            ,"lost_staff_card": false   //$('#checkLostStaffCard').prop('checked')
+
+            // 「かな」欄が有効状態かどうかで、手動受付かどうかを判断する
+            ,"manual": false   // !$('#user_kana').prop('disabled')
+        }
+    }
+    console.table(sendData.action);
+    console.table(sendData.data);
+    
+    let _ret = await getFetchData(GAS_URL, sendData);
 };
 
 // 手動入力フォーム制御
