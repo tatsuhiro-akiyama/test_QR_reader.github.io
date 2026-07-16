@@ -1,22 +1,6 @@
 // DOM要素の取得
 var containor = HTMLElement;
 
-// var placeholder = HTMLElement;
-// var cameraStatusText = HTMLElement;
-
-// var modeQr = HTMLElement;
-// var modeManual = HTMLElement;
-
-// var btnModeQr = HTMLElement;
-// var btnModeManual = HTMLElement;
-
-// var iconQr = HTMLElement;
-// var iconManual = HTMLElement;
-
-// var scanTarget = HTMLElement;
-// var manualInput = HTMLElement;
-// var submitBtn = HTMLElement;
-// var clearBtn = HTMLElement;
 // var toast = HTMLElement;
 // /** 不正QRコードの場合のメッセージ */
 // var qrErrMessage = HTMLElement;
@@ -31,9 +15,11 @@ var suggestionList = HTMLElement;   // 入力候補
 var nameSelect = HTMLElement;
 var deptSelect = HTMLElement;
 var meetingStatus = HTMLElement;
+var reasonInput = HTMLElement;
 var timeInput = HTMLElement;
 var timeSuffix = HTMLElement;
 var timeLabel = HTMLElement;
+var contactForm = HTMLElement;
 
 
 
@@ -41,6 +27,10 @@ var timeLabel = HTMLElement;
 
 /** 画面ロード時の処理 */
 window.onload = async function() {
+
+    console.time()
+
+
     // 💡ページを離れる/リロードする直前にリクエストを強制切断（GET化の残骸防止）
     window.onbeforeunload = () => {
         if (fetchController) fetchController.abort();
@@ -48,19 +38,12 @@ window.onload = async function() {
 
     // DOM要素の取得
     containor = document.getElementById('containor');
-
-    // placeholder = document.getElementById('camera-placeholder');
-    // cameraStatusText = document.getElementById('camera-status-text');
-
-    // manualInput = document.getElementById('manual-input');
-    // submitBtn = document.getElementById('submit-btn');
-    // clearBtn = document.getElementById('clear-btn');
-    // toast = document.getElementById('toast');
-
     /** 設定データ取得待ちのポップアップ通知 */
     toastDataWait = document.getElementById('toast-getData-wait');
     /** エラー時のポップアップ通知 */
     toastError = document.getElementById('toast-error');
+    
+    // toast = document.getElementById('toast');
 
     // GETパラメータの取得
     args = getArguments();
@@ -75,20 +58,14 @@ window.onload = async function() {
         console.groupCollapsed('設定データ＆社員情報一覧の取得');
         let data = await getFetchData(GAS_URL, 'report.html', args, sendParam_getEmployee);
 
-        // 取得結果
-        SETTING_DATA = data.settingData;
-        console.table(SETTING_DATA);
+        // 取得結果を定数に格納
+        setConstants(data, false);
 
-        // 初期化時に社員配列を「かな氏名」をキーにハッシュテーブルに変換する
-        if (Array.isArray(data.employeeInfo)) {
-            EMPLOYEE_INFO = new Map(data.employeeInfo.map(emp => [String(emp.kana), emp]));
-        }
-        console.table(EMPLOYEE_INFO);
         console.groupEnd('設定データ＆社員情報一覧の取得');
 
     } catch (fetchError) {
         showToastError(
-            '設定データの取得に失敗しました。<br>' + fetchError
+            fetchError
             ,false
         );
         return false;
@@ -105,17 +82,17 @@ window.onload = async function() {
     containor.classList.remove('hidden');
     containor.classList.add('opacity-100');
 
-
-
     // 各入力域のDOM要素取得
     kanaInput = document.getElementById('kana-input');
     suggestionList = document.getElementById('suggestion-list');
     nameSelect = document.getElementById('name-select');
     deptSelect = document.getElementById('dept-select');
     meetingStatus = document.getElementById('meeting-status');
+    reasonInput = document.getElementById('reason-input');
     timeInput = document.getElementById('time-input');
     timeSuffix = document.getElementById('time-suffix');
     timeLabel = document.getElementById('time-label');
+    contactForm = document.getElementById('contact-form');
 
     // フォーカスがあたった瞬間にリストを表示（全件、または入力中の文字で絞り込み）
     kanaInput.addEventListener('focus', updateSuggestions);
@@ -137,19 +114,23 @@ window.onload = async function() {
 
         const targetKana = clickedItem.getAttribute('data-kana');
         const selectedMember = EMPLOYEE_INFO.get(targetKana);
-        console.log(targetKana);
         console.table(selectedMember);
 
-
-
         if (selectedMember) {
-            // 入力欄に値をセット
+            // 入力欄にdata属性をセット
             kanaInput.value = selectedMember.kana;
-            
+            kanaInput.dataset.kana = selectedMember.kana;
+            kanaInput.dataset.rowNo = selectedMember.row_no;
+            kanaInput.dataset.userNo = selectedMember.user_no;
+            kanaInput.dataset.mail = selectedMember.mail;
+            kanaInput.dataset.dept = selectedMember.dept;
+            kanaInput.dataset.name = selectedMember.name;
+            kanaInput.dataset.seat = (SETTING_DATA.mode_jp === '会議受付' ? selectedMember.seat_meeting: selectedMember.seat_gathering);
+
             // 氏名と所属に反映
             nameSelect.innerHTML = `<option value="${selectedMember.name}" selected>${selectedMember.name}</option>`;
             deptSelect.innerHTML = `<option value="${selectedMember.dept}" selected>${selectedMember.dept}</option>`;
-            
+
             // スタイルをアクティブカラーに変更
             nameSelect.classList.remove('text-slate-500');
             nameSelect.classList.add('text-slate-100');
@@ -168,10 +149,16 @@ window.onload = async function() {
 
     meetingStatus.addEventListener('change', handleMeetingStatusChange);
 
+    // 「送信」ボタン押下時の処理
+    contactForm.addEventListener('submit', (e) => {
+        event.preventDefault();
+        sendData();
+    });
 
     // 会議欄の切り替え制御
     handleMeetingStatusChange();
 
+    console.timeEnd()
     console.log('アプリ起動完了');
 }
 
@@ -212,12 +199,15 @@ function updateSuggestions() {
 function handleMeetingStatusChange() {
     if (meetingStatus.value === '遅刻') {
         timeInput.disabled = false;
+        timeInput.required = true;
         timeSuffix.style.opacity = '1';
         timeLabel.classList.remove('text-slate-600');
         timeLabel.classList.add('text-slate-400');
+
     } else {
         timeInput.disabled = true;
         timeInput.value = ''; 
+        timeInput.required = false;
         timeSuffix.style.opacity = '0.3';
         timeLabel.classList.remove('text-slate-400');
         timeLabel.classList.add('text-slate-600');
@@ -251,24 +241,64 @@ function showToastSuccess(_message, _seat) {
         toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
     }, timer);
 }
-/** エラー時ポップアップ通知の表示 */
-function showToastError(_message, _autoClose = true) {
-    clearTimeout(toastTimeout);
 
-    // エラーメッセージ
-    const toastErrorMessage = document.getElementById('toast-error-message');
-    toastErrorMessage.innerHTML = _message;
+async function sendData() {
 
-    // トースト表示アニメーション
-    toastError.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
-    toastError.classList.add('translate-y-0', 'opacity-100');
 
-    // _autoCloseがtrueの場合、何もしなくても30秒後に隠す
-    if (_autoClose) {
-        toastTimeout = setTimeout(() => {
-            // エラー時のポップアップ通知を隠す
-            toastError.classList.remove('translate-y-0', 'opacity-100');
-            toastError.classList.add('hidden');
-        }, 30000);
+    let sendData = {
+        title: SETTING_DATA.title
+        ,date: SETTING_DATA.date_jp
+        ,venue: SETTING_DATA.venue_meeting
+        ,app_mode: SETTING_DATA.app_mode
+        ,mode: SETTING_DATA.mode_jp.replace('受付', '')
+        ,mail_from: SETTING_DATA.mail_from
+        // メール添付
+        ,mail_attach: (SETTING_DATA.mode_jp === '会議受付' ? SETTING_DATA.seating_chart_meeting: SETTING_DATA.seating_chart_gathering)
+        // メール送信対象外の所属部署一覧
+        ,no_send_mail_dept: SETTING_DATA.no_send_mail_dept.concat()
+
+        ,row_no: kanaInput.dataset.rowNo
+        ,user_no: kanaInput.dataset.userNo
+        ,mail_to: kanaInput.dataset.mail
+        ,user_dept: kanaInput.dataset.dept
+        ,user_name: kanaInput.dataset.name
+        // 参加可否種別
+        ,attendance: {
+            meeting: (SETTING_DATA.mode_jp === '会議受付' ? meetingStatus.value: null)
+            ,gathering: (SETTING_DATA.mode_jp === '懇親会受付' ? meetingStatus.value: null)
+        }
+        // 座席位置
+        ,seat: kanaInput.dataset.seat
+        // 遅刻の場合は、理由に「予定時刻」も追記
+        ,comment: reasonInput.value + (meetingStatus.value === '遅刻' ? '(' + timeInput.value + '予定)': '')
+
+        ,lost_qr_cord: false
+        ,manual: true
+    };
+    console.log('登録データ');
+    console.table(sendData);
+
+
+    try {
+        // 先に完了メッセージを表示
+        showToastSuccess('登録しました', '');
+        
+        // 遅刻/欠席連絡の登録
+        console.groupCollapsed('遅刻/欠席連絡の登録');
+        let _action = (SETTING_DATA.mode_jp === '会議受付' ? sendParam_meeting: sendParam_gathering);
+        let data = await getFetchData(GAS_URL, 'report.html', args, _action, sendData);
+
+        console.groupEnd('遅刻/欠席連絡の登録');
+
+    } catch (fetchError) {
+        showToastError(
+            fetchError
+            ,false
+        );
+        return false;
     }
+
+
+
+
 }

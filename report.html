@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title id="appli-title">遅刻・欠席連絡報告</title>
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://script.googleusercontent.com">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -75,13 +78,13 @@
                 </h2>
             </div>
 
-            <form id="contact-form" class="flex flex-col gap-5" onsubmit="event.preventDefault(); alert('登録しました！');">
+            <form id="contact-form" class="flex flex-col gap-5">
                 
                 <!--対象者かな  -->
                 <div class="relative" id="autocomplete-wrapper">
                     <label class="block text-slate-400 text-[11px] font-bold tracking-wider uppercase mb-2">対象者 かな <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <input type="text" id="kana-input" placeholder="タップしてリストから選択、または入力" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 outline-none transition-all placeholder:text-slate-600 cursor-pointer">
+                        <input type="text" id="kana-input" placeholder="タップしてリストから選択、または入力" autocomplete="off" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 outline-none transition-all placeholder:text-slate-600 cursor-pointer" required>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                             <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -96,7 +99,7 @@
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold tracking-wider uppercase mb-2">対象者 氏名 <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <select id="name-select" disabled class="w-full bg-slate-950/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none">
+                        <select id="name-select" disabled class="w-full bg-slate-950/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none" required>
                             <option value="" selected>かなを入力／選択すると自動反映されます</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600">
@@ -109,7 +112,7 @@
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold tracking-wider uppercase mb-2">所属 <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <select id="dept-select" disabled class="w-full bg-slate-950/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none">
+                        <select id="dept-select" disabled class="w-full bg-slate-950/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none" required>
                             <option value="" selected>かなを入力／選択すると自動反映されます</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600">
@@ -122,7 +125,7 @@
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold tracking-wider uppercase mb-2">会議 <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <select id="meeting-status" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 outline-none transition-all cursor-pointer">
+                        <select id="meeting-status" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 outline-none transition-all cursor-pointer" required>
                             <option value="遅刻" selected>🕒遅刻</option>
                             <option value="欠席">✖欠席</option>
                         </select>
@@ -136,7 +139,7 @@
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold tracking-wider uppercase mb-2">理由 <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <select class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 outline-none transition-all cursor-pointer">
+                        <select id="reason-input" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 outline-none transition-all cursor-pointer" required>
                             <option value="業務都合">🏢業務都合</option>
                             <option value="電車遅延">🚃電車遅延</option>
                             <option value="私事都合">🧑私事都合</option>
@@ -152,9 +155,30 @@
                 <div id="time-field-wrapper">
                     <label id="time-label" class="block text-slate-400 text-[11px] font-bold tracking-wider uppercase mb-2">到着予定時刻</label>
                     <div class="flex items-center gap-3">
-                        <input type="time" id="time-input" class="flex-1 bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 font-mono text-lg outline-none transition-all disabled:opacity-30 disabled:border-slate-800 disabled:bg-slate-950/20 disabled:cursor-not-allowed">
+                        <input type="time" id="time-input" class="flex-1 bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-100 font-mono text-lg outline-none transition-all disabled:opacity-30 disabled:border-slate-800 disabled:bg-slate-950/20 disabled:cursor-not-allowed" min="13:00" max="19:30" step="1800" list="reason-time-list">
                         <span id="time-suffix" class="text-slate-300 font-medium text-sm transition-opacity duration-300">頃</span>
                     </div>
+                    <datalist id="reason-time-list">
+                        <option value="13:00"></option>
+                        <option value="13:30"></option>
+                        <option value="14:00"></option>
+                        <option value="14:30"></option>
+                        <option value="15:00"></option>
+                        <option value="15:30"></option>
+                        <option value="16:00"></option>
+                        <option value="16:30"></option>
+                        <option value="17:00"></option>
+                        <option value="17:30"></option>
+                        <option value="18:00"></option>
+                        <option value="18:30"></option>
+                        <option value="19:00"></option>
+                        <option value="19:30"></option>
+                    </datalist>
+                </div>
+
+                <div class="text-sm text-red-500">
+                    ※会議を「欠席」として登録した場合は、懇親会も「欠席」として登録されます<br>
+                    ※「遅刻」の到着予定が懇親会開始以降の場合は、懇親会は「遅刻」として登録されます
                 </div>
 
                 <!-- 送信ボタン -->

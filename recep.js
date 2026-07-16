@@ -40,46 +40,11 @@ var toastError = HTMLElement;
 /** 不正QRコードの場合のメッセージ */
 var qrErrMessage = HTMLElement;
 
-/* 音声用のWebAudio API */
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playBeep(success = true) {
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    if (success) {
-        // 成功時のピピッという音
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        osc.start();
-        
-        setTimeout(() => {
-            osc.frequency.setValueAtTime(1320, audioCtx.currentTime); // E6
-        }, 80);
-        
-        setTimeout(() => {
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
-            osc.stop(audioCtx.currentTime + 0.15);
-        }, 160);
-
-    } else {
-        // エラー時のブブーという音
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
-        osc.stop(audioCtx.currentTime + 0.35);
-    }
-}
-
 /** 画面ロード時の処理 */
 window.onload = async function() {
+
+    console.time('window.onload')
+
     // 💡ページを離れる/リロードする直前にリクエストを強制切断（GET化の残骸防止）
     window.onbeforeunload = () => {
         if (fetchController) fetchController.abort();
@@ -129,19 +94,18 @@ window.onload = async function() {
     // GETパラメータの取得
     args = getArguments();
 
-    // // titleタグの書き換え
-    // const title = document.getElementById('appli-title');
-    // switch(args.mode) {
-    //     case 'recep':
-    //         title.innerText = '会議受付[QR]';
-    //         break;
-    //     case 'gathering':
-    //         title.innerText = '懇親会[QR]';
-    //         break;
-    //     default:
-    //         title.innerText = 'QR受付アプリ';
-    //         break;
-    // }
+    // titleタグの書き換え
+    const title = document.getElementById('appli-title');
+    switch(args.mode) {
+        case 'recep':
+            title.innerText = '会議受付[QR]';
+            break;
+        case 'gathering':
+            title.innerText = '懇親会[QR]';
+            break;
+        default:
+            break;
+    }
 
     // 設定データ取得待ちの表示
     clearTimeout(toastTimeout);
@@ -151,17 +115,14 @@ window.onload = async function() {
     try {
         // 設定データ＆社員情報一覧の取得
         console.groupCollapsed('設定データ＆社員情報一覧の取得');
+        console.time('　getFetchData')
         let data = await getFetchData(GAS_URL, 'recep.html', args, sendParam_getEmployee);
+        console.timeEnd('　getFetchData')
 
-        // 取得結果
-        SETTING_DATA = data.settingData;
-        console.table(SETTING_DATA);
-
-        // 初期化時に社員配列をハッシュテーブルに変換する
-        if (Array.isArray(data.employeeInfo)) {
-            EMPLOYEE_INFO = new Map(data.employeeInfo.map(emp => [String(emp.user_no), emp]));
-        }
-        console.table(EMPLOYEE_INFO);
+        // 取得結果を定数に格納
+        console.time('　setConstants')
+        setConstants(data, true);
+        console.timeEnd('　setConstants')
         console.groupEnd('設定データ＆社員情報一覧の取得');
 
     } catch (fetchError) {
@@ -206,6 +167,7 @@ window.onload = async function() {
     scanTarget.addEventListener('click', scanTargetDemo);
 
 
+    console.timeEnd('window.onload')
     console.log('アプリ起動完了');
 }
 
@@ -437,27 +399,6 @@ function showToastSuccess(_message, _seat) {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-20', 'hidden', 'pointer-events-none');
     }, timer);
-}
-/** エラー時ポップアップ通知の表示 */
-function showToastError(_message, _autoClose = true) {
-    clearTimeout(toastTimeout);
-
-    // エラーメッセージ
-    const toastErrorMessage = document.getElementById('toast-error-message');
-    toastErrorMessage.innerHTML = _message;
-
-    // トースト表示アニメーション
-    toastError.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
-    toastError.classList.add('translate-y-0', 'opacity-100');
-
-    // _autoCloseがtrueの場合、何もしなくても30秒後に隠す
-    if (_autoClose) {
-        toastTimeout = setTimeout(() => {
-            // エラー時のポップアップ通知を隠す
-            toastError.classList.remove('translate-y-0', 'opacity-100');
-            toastError.classList.add('hidden');
-        }, 30000);
-    }
 }
 
 

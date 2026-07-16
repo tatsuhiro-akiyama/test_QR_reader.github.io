@@ -41,10 +41,46 @@ var fetchController = null;
 
 /** GASのURL送信時に送るパラメータ */
 const sendParam_getEmployee = 'getEmployeeData';
-var sendParamMeeting = { action: 'updateMeeting' };
-var sendParamgathering = { action: 'updategathering' };
+const sendParam_meeting = 'entryMeeting';
+const sendParam_gathering = 'entryGathering';
 
+/* 音声用のWebAudio API */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBeep(success = true) {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
+    if (success) {
+        // 成功時のピピッという音
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        
+        setTimeout(() => {
+            osc.frequency.setValueAtTime(1320, audioCtx.currentTime); // E6
+        }, 80);
+        
+        setTimeout(() => {
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+            osc.stop(audioCtx.currentTime + 0.15);
+        }, 160);
+
+    } else {
+        // エラー時のブブーという音
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+        osc.stop(audioCtx.currentTime + 0.35);
+    }
+}
 
 /** GETパラメータの取得 */
 function getArguments() {
@@ -68,26 +104,30 @@ function getArguments() {
 }
 
 /** URLFetchを実行しデータを取得する */
-async function getFetchData(_url, _file, _args, _action) {
+async function getFetchData(_url, _file, _args, _action, _data = null) {
     try {
         // 💡リロード対策：既存の未完了リクエストがあれば切断
         if (fetchController) { fetchController.abort(); }
         fetchController = new AbortController();
 
+        let _body = {
+            mode: _args.mode
+            ,pass: _args.pass
+            ,date: _args.date
+            ,file: _file
+            ,action: _action
+            ,data: _data
+        };
+
         console.log('getFetchData:', _url);
+        console.table(_body);
         const response = await fetch(
                                     _url
                                     ,{
                                         method: "POST"
                                         ,signal: fetchController.signal
-                                        ,headers: {"Content-Type": "text/plain"}
-                                        ,body: JSON.stringify({
-                                            mode: _args.mode
-                                            ,pass: _args.pass
-                                            ,date: _args.date
-                                            ,file: _file
-                                            ,action: _action
-                                        })
+                                        ,headers: { "Content-Type": "text/plain" }
+                                        ,body: JSON.stringify(_body)
                                     }
                                 );
         const data = await response.json();
@@ -107,6 +147,50 @@ async function getFetchData(_url, _file, _args, _action) {
     }
 }
 
+/** URLFetch結果を定数に格納 */
+function setConstants(_data, _key_userno) {
+    // 設定情報
+    SETTING_DATA.title = _data.settingData[0];
+    SETTING_DATA.version = _data.settingData[1];
+    SETTING_DATA.app_mode = _data.settingData[2];
+    SETTING_DATA.mode = _data.settingData[3];
+    SETTING_DATA.mode_jp = _data.settingData[4];
+    SETTING_DATA.info_message = _data.settingData[5];
+    SETTING_DATA.pass = _data.settingData[6];
+    SETTING_DATA.date = _data.settingData[7];
+    SETTING_DATA.date_jp = _data.settingData[8];
+    SETTING_DATA.meeting_time = _data.settingData[9];
+    SETTING_DATA.venue_meeting = _data.settingData[10];
+    SETTING_DATA.seating_chart_meeting = _data.settingData[11];
+    SETTING_DATA.gathering_time = _data.settingData[12];
+    SETTING_DATA.venue_gathering = _data.settingData[13];
+    SETTING_DATA.seating_chart_gathering = _data.settingData[14];
+    SETTING_DATA.mail_from = _data.settingData[15];
+    SETTING_DATA.no_send_mail_dept = _data.settingData[16];
+    console.table(SETTING_DATA);
+
+    // 社員一覧（ハッシュテーブルに変換）
+    if (Array.isArray(_data.employeeInfo)) {
+        EMPLOYEE_INFO = new Map(_data.employeeInfo.map(emp => [
+            _key_userno ? String(emp[2]): String(emp[4])    // フラグがtrueの場合user_noをキーにする、falseの場合kanaをキーにする
+            ,{
+                row_no: emp[0]
+                ,company: emp[1]
+                ,user_no: emp[2]
+                ,name: emp[3]
+                ,kana: emp[4]
+                ,dept: emp[5]
+                ,mail: emp[6]
+                ,meeting: emp[7]
+                ,social_gathering: emp[8]
+                ,seat_meeting: emp[9]
+                ,seat_gathering: emp[10]
+            }
+        ]));
+    }
+    console.table(EMPLOYEE_INFO);
+}
+
 /** 設定情報画面描画 */
 function drawSettingData() {
     const mode = document.getElementById('mode-name');
@@ -124,5 +208,27 @@ function drawSettingData() {
             datetime.innerText += ' ' + SETTING_DATA.gathering_time;
             venue.innerText = SETTING_DATA.venue_gathering;
             break;
+    }
+}
+
+/** エラー時ポップアップ通知の表示 */
+function showToastError(_message, _autoClose = true) {
+    clearTimeout(toastTimeout);
+
+    // エラーメッセージ
+    const toastErrorMessage = document.getElementById('toast-error-message');
+    toastErrorMessage.innerHTML = _message;
+
+    // トースト表示アニメーション
+    toastError.classList.remove('translate-y-20', 'hidden', 'pointer-events-none');
+    toastError.classList.add('translate-y-0', 'opacity-100');
+
+    // _autoCloseがtrueの場合、何もしなくても30秒後に隠す
+    if (_autoClose) {
+        toastTimeout = setTimeout(() => {
+            // エラー時のポップアップ通知を隠す
+            toastError.classList.remove('translate-y-0', 'opacity-100');
+            toastError.classList.add('hidden');
+        }, 30000);
     }
 }
