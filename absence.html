@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title id="appli-title">懇親会欠席連絡</title>
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://script.googleusercontent.com">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- アプリのスクリプトファイル -->
+    <script src="./env.js"></script>
+    <script src="./common.js"></script>
+    <script src="./absence.js"></script>
+    <style>
+        /* セーフエリア対応 */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 1rem);
+        }
+        .pt-safe {
+            padding-top: env(safe-area-inset-top, 1rem);
+        }
+        /* セレクトボックスのデフォルト矢印を消す */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        /* スクロールバーの見た目をダークモードに最適化 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #dedede;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-yellow-50 text-white font-sans overflow-hidden select-none h-screen w-full flex justify-center items-center">
+    <div id="containor" class="relative w-full max-w-md h-full bg-amber-100 flex flex-col overflow-hidden shadow-2xl border-x border-slate-800 hidden">
+
+        <header class="relative z-20 w-full pt-safe px-6 pb-4 bg-orange-600 flex-shrink-0 shadow-lg border-b border-slate-800/50">
+            <div class="pt-6 flex items-stretch gap-4">
+                <div class="flex items-center flex-shrink-0">
+                    <h1 class="text-xl font-bold tracking-wider text-orange-950 drop-shadow">
+                        懇親会欠席連絡
+                    </h1>
+                </div>
+
+                <div class="flex items-end flex-col gap-1 justify-center flex-grow">
+                    <div class="flex items-center gap-2 text-xs text-amber-950 font-medium bg-amber-100/85 border border-slate-800/30 w-fit px-3 py-1.5 rounded-lg backdrop-blur-md shadow-lg shadow-slate-950/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <span id="appli-datetime">20xx/xx/xx(xxx) xx:xx</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs text-amber-950 font-medium bg-amber-100/85 border border-slate-800/30 w-fit px-3 py-1.5 rounded-lg backdrop-blur-md shadow-lg shadow-slate-950/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <span id="appli-venue">xxxxx xF xxx</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="relative z-20 flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 custom-scrollbar pb-safe">
+            <div class="mb-1">
+                <h2 class="text-sm font-bold text-red-600 tracking-wider uppercase flex items-center gap-1.5">
+                    懇親会を欠席する場合は、内容を入力のうえ送信してください。
+                </h2>
+            </div>
+
+            <form id="contact-form" class="flex flex-col gap-5">
+                
+                <!--対象者かな  -->
+                <div class="relative" id="autocomplete-wrapper">
+                    <label class="block text-stone-500 text-[11px] font-bold tracking-wider uppercase mb-2">対象者 かな <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <select id="kana-input" disabled class="w-full bg-stone-500/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none" required>
+                            <option value="" selected>タップしてリストから選択、または入力</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500">
+                            <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <ul id="suggestion-list" class="absolute z-30 w-full mt-2 bg-yellow-200 border border-slate-800 rounded-xl max-h-56 overflow-y-auto hidden custom-scrollbar shadow-2xl">
+                    </ul>
+                </div>
+
+                <!-- 対象者氏名 -->
+                <div>
+                    <label class="block text-stone-500 text-[11px] font-bold tracking-wider uppercase mb-2">対象者 氏名 <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <select id="name-select" disabled class="w-full bg-stone-500/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none" required>
+                            <option value="" selected>かなを入力／選択すると自動反映されます</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 所属 -->
+                <div>
+                    <label class="block text-stone-500 text-[11px] font-bold tracking-wider uppercase mb-2">所属 <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <select id="dept-select" disabled class="w-full bg-stone-500/40 border border-slate-800 text-slate-500 rounded-xl px-4 py-3 outline-none cursor-not-allowed select-none" required>
+                            <option value="" selected>かなを入力／選択すると自動反映されます</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 懇親会 -->
+                <div>
+                    <label class="block text-stone-500 text-[11px] font-bold tracking-wider uppercase mb-2">懇親会 <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <select id="meeting-status" class="w-full bg-yellow-200 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-600 outline-none transition-all cursor-pointer" required>
+                            <option value="欠席" selected>✖欠席</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 理由 -->
+                <div>
+                    <label class="block text-stone-500 text-[11px] font-bold tracking-wider uppercase mb-2">理由 <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <select id="reason-input" class="w-full bg-yellow-200 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-4 py-3 text-slate-600 outline-none transition-all cursor-pointer" required>
+                            <option value="業務都合">🏢業務都合</option>
+                            <option value="私事都合" selected>🧑私事都合</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-sm text-red-600">
+                    <label>
+                    <input type="checkbox" id="check-attention" class="ml-2 mr-1">懇親会を当日欠席する旨を、所属上長にも情報共有しました。
+                    </label>
+                </div>
+
+                <!-- 送信ボタン -->
+                <button id="btn-submit" type="submit" disabled class="w-full mt-4 mb-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-600 font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-amber-950/20 active:scale-98 transition-all flex items-center justify-center gap-2 flex-shrink-0 cursor-not-allowed"style="opacity: 0.3;">
+                    <span>送信する</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+            </form>
+        </main>
+    </div>
+
+    <!-- 設定データ取得待ちのポップアップ通知 -->
+    <div id="toast-getData-wait" class="absolute top-[230px] left-auto right-auto w-[320px] z-50 bg-yellow-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+        <div class="flex flex-center flex-center items-center justify-center">
+            <!-- スピナー -->
+            <svg class="mr-3 -ml-1 size-8 text-emerald-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <!-- メッセージ -->
+            <div id="wait-message" class="text-sm text-emerald-400 mt-0.5 mb-1.5">
+                設定データ取得中<br>しばらくお待ちください...
+            </div>
+        </div>
+    </div>
+
+    <!-- 成功時のポップアップ通知 -->
+    <div id="toast" class="absolute top-[230px] left-auto right-auto w-[320px] z-50 bg-yellow-900 border border-emerald-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+        <!-- メッセージ -->
+        <div class="flex-1">
+            <div class="text-sm text-emerald-400 mt-0.5 mb-1.5">
+                登録を完了しました
+            </div>
+        </div>
+    </div>
+
+    <!-- エラー時のポップアップ通知 -->
+    <div id="toast-error" class="absolute top-[230px] left-auto right-auto w-[320px] z-50 bg-red-950 border border-red-500/40 rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-3.5 transform translate-y-20 hidden pointer-events-none transition-all duration-500 backdrop-blur-md">
+        <!-- アイコン -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 text-red-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+
+        <!-- メッセージ -->
+        <div class="flex-1">
+            <div class="text-sm text-red-500 font-bold mt-0.5 mb-1">
+                エラーが発生しました
+            </div>
+            <div id="toast-error-message" class="text-slate-600">
+                エラーメッセージ<br>エラー詳細
+            </div>
+        </div>
+    </div>
+</body>
+</html>

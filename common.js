@@ -89,18 +89,16 @@ function getArguments() {
     const params = new URLSearchParams(window.location.search);
 
     // 取得結果
-    console.table({
+    let _array = {
         pass: params.get('pass') === '' ? null: params.get('pass')
         ,mode: params.get('mode') === '' ? null: params.get('mode')
         ,date: params.get('date') === '' ? null: params.get('date')
-    });
+        ,id: params.get('id') === '' ? null: params.get('id')
+    }
+    console.table(_array);
     console.groupEnd('GETパラメータの取得');
 
-    return {
-        pass: params.get('pass') === '' ? null: params.get('pass')
-        ,mode: params.get('mode') === '' ? null: params.get('mode')
-        ,date: params.get('date') === '' ? null: params.get('date')
-    };
+    return _array;
 }
 
 /** URLFetchを実行しデータを取得する */
@@ -114,6 +112,7 @@ async function getFetchData(_url, _file, _args, _action, _data = null) {
             mode: _args.mode
             ,pass: _args.pass
             ,date: _args.date
+            ,id: _args.id
             ,file: _file
             ,action: _action
             ,data: _data
@@ -197,7 +196,7 @@ function drawSettingData() {
     const datetime = document.getElementById('appli-datetime');
     const venue = document.getElementById('appli-venue');
 
-    mode.innerText = SETTING_DATA.mode_jp;
+    if (mode) { mode.innerText = SETTING_DATA.mode_jp; }
     datetime.innerText = SETTING_DATA.date;
     switch(SETTING_DATA.mode_jp) {
         case '会議受付':
